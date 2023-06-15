@@ -1934,6 +1934,44 @@ def read_griddata_from_swan_d131(filename,grid = None,level = None,time = None,d
         return None
 
 
+def read_griddata_from_ensemble_grads(filename, dtype=np.float32,
+        dim_ens=range(0,51,1), dim_dtime=range(0,241,6), 
+        dim_time=[datetime.datetime(2021,6,1,0)], dim_level=[0], 
+        dim_lat=np.arange(0.,55.1,0.5).tolist(), dim_lon=np.arange(70.,150.1,0.5).tolist(),
+        unit='mm'):
+    ## 起报时间维度，可变,列表或者numpy数组格式
+    ## 从grads的二进制文件中读取数据，六个维度为预设，如有不一致需要自行设定
+    ## 各维度具体数目
+    nens = len(dim_ens)
+    ntime = len(dim_time)
+    ndtime = len(dim_dtime)
+    nlevel = len(dim_level)
+    nlon = len(dim_lon)
+    nlat = len(dim_lat)
+    
+    ## 读取grads文件到numpy数组
+    # filename = mc.BF.get_name_from_datetime(fmt,dt=dt)
+    if not os.path.exists(filename):
+        print("Grads file not EXISTs")
+        return None
+    ens_data = np.fromfile(filename,dtype=np.float32)
+    try:
+        ens_data.shape = nens,ndtime,ntime,nlevel,nlat,nlon
+    except:
+        print("DATA Dimensions ERROR: Now is [{0},{1},{2},{3},{4},{5}], Please check".format(nens,ndtime,ntime,nlevel,nlat,nlon))
+        return None
+    print(ens_data.shape)
+    
+    ## 转为meteva的xarray格式
+    grd_ens = xr.DataArray(ens_data
+                       ,coords=[dim_ens, dim_dtime, dim_time, dim_level, dim_lat, dim_lon]
+                       ,dims=['member','dtime','time','level','lat','lon'])
+    grd_ens.attrs["units"] = unit
+    grd_ens.name = 'data0'
+    grd_ens1 = grd_ens.transpose('member','level','time','dtime','lat','lon')
+    grd_ens1.attrs["dtime_units"] = dtime_units
+    return(grd_ens1)
+
 
 def jd2ce(JDN):
     import math
