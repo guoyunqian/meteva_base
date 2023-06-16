@@ -242,22 +242,12 @@ def read_sta_from_grib2(file, sta_info):
     return result, grd
 
 if __name__ == '__main__':
-
-    # ## 01 EC_C1D
-    # grd_list = read_grib(r'F:\data\NAFP\ECMF\C1D\2020\202003\test\C1D06250000062506001')
-    # print(len(grd_list))
-    # # shortName:grib2 code
-    # # ptype:0_1_19   lnsp:0_3_25   cc:0_6_32  ciwc:0_1_84  clwc:0_1_83
-    # for g in grd_list:
-    #     if g['member'].values[0] == "0_1_19":
-    #         print(g)
-
     ## 02 SCMOC_ER01
     lons = [116.35]
     lats = [39.95]
     sta_info = get_stainfo(lons=lons, lats=lats)
     file = r"J:\Z_NWGD_C_BABJ_20230505055246_P_RFFC_SCMOC-ER01_202305050500_03601.GRB2"
-    array = read_pygrib(file)
+    array = read_pygrib(file, dset=True)
+    sta = meb.interp_gs_linear(array, sta=sta_info)
     print(array)
-    # sta, grd = read_sta_from_grib2(file, sta_info=sta_info)
-    # print(sta)
+    print(sta)
