@@ -43,7 +43,9 @@ def add_map(ax,add_county_line = False,add_worldmap = True,title = None,sup_font
 def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300,sup_title = None,sup_fontsize = 12,
               add_county_line = False,add_worldmap = True,add_minmap = None,title_list = None,add_index = None,wspace = None,grid = True,
               xticks_inter = None,yticks_inter = None,linewidth = [0.3,0.3,0.2],color = ["k","k","k"]):
-
+    """
+    return: fig, axes, [miniaxes]
+    """
 
     ax_index = []
     if add_index is not None:
@@ -278,9 +280,9 @@ def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300
                 add_map(ax_min, add_worldmap =True)  # "国界"
                 min_ax_list.append(ax_min)
     if len(min_ax_list)==0:
-        return ax_list
+        return fig, ax_list
     else:
-        return ax_list,min_ax_list
+        return fig, ax_list,min_ax_list
 
 
 def add_contourf(ax,grd,cmap ="rainbow",clevs= None,add_colorbar = True,cut_colorbar = True,title = None,title_fontsize = 8,clip = None):

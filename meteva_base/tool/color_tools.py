@@ -1218,6 +1218,44 @@ def set_plot_color_dict_method2(member_list):
     return
 
 
+def get_part_colormaps(cmaps, clevs=None, partlist=[]):
+    """
+    从已有cmaps/clevs对中，获取部分范围的色标
+    partlist:起始和终止的cmaps序号，列表形式
+    """
+    import matplotlib.colors as colors
+    s_part = partlist[0]
+    e_part = partlist[1]+1
+    if partlist[1] == -1:
+        e_part = None
+    colors0 = cmaps.colors[s_part:e_part]
+    cmap1 = colors.ListedColormap(colors0,'indexed')
+#     print(colors0)
+    if clevs is not None:
+        clevs1 = clevs[s_part:e_part]
+    return cmap1,clevs1
+
+def merge_cmap_clevs(cmap0,cmap1,clevs0=None,clevs1=None):
+    '''
+    合并两个colorbar
+    :param cmap0:
+    :param clevs0:
+    :param cmap1:
+    :param clevs2:
+    :return:
+    '''
+    import matplotlib.colors as colors
+    colors0 = np.array(cmap0.colors).tolist()
+    colors1 = np.array(cmap1.colors).tolist()
+    colors0.extend(colors1)
+    cmap_m = colors.ListedColormap(colors0, 'indexed')
+    if not (clevs0 is None or clevs1 is None):
+        clevs_m =  np.array(clevs0.copy()).tolist()
+        clevs_m.extend(np.array(clevs2).tolist())
+    return(cmap_m,clevs_m)
+
+
+
 if __name__ =="__main__":
     cmap,clev = meteva_base.def_cmap_clevs(meteva_base.cmaps.bias, vmin=-10, vmax = 20)
     meteva_base.tool.color_tools.show_cmap_clev(cmap,clev)
