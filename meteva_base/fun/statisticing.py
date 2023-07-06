@@ -573,7 +573,7 @@ def max_of_grd(grd,used_coords = ["member"]):
     return grd1
 
 #获取网格数据的求和
-def sum_of_grd(grd,used_coords = ["member"],span = None):
+def sum_of_grd(grd,used_coords = ["member"],span = None, keep_all=True):
     if used_coords ==["member"]:
         grid0 = meteva_base.basicdata.get_grid_of_data(grd)
         grid1 = meteva_base.basicdata.grid(grid0.glon,grid0.glat,grid0.gtime,grid0.dtimes,grid0.levels,member_list=["max"])
@@ -590,7 +590,6 @@ def sum_of_grd(grd,used_coords = ["member"],span = None):
             grid1 = meteva_base.grid(grid0.glon, grid0.glat, grid0.gtime, dtimes_sum, grid0.levels, grid0.members)
             grd_sum = meteva_base.grid_data(grid1)
             grd_sum.values[:, :, :, 0, :, :] = np.sum(grd.values[:, :, :, :, :, :], axis=3)
-            return grd_sum
         else:
             grid0 = meteva_base.get_grid_of_data(grd)
             dtimes = np.array(grid0.dtimes)
@@ -603,14 +602,17 @@ def sum_of_grd(grd,used_coords = ["member"],span = None):
                 index = np.where((dtimes > dtime_s) & (dtimes <= dtime_e))[0]
 
                 grd_sum.values[:,:,:,i,:,:] = np.sum(grd.values[:,:,:,index,:,:],axis=3)
-            return grd_sum
+        if not keep_all: #只保留时刻预报时效
+            fhs = np.sort(grd_sum.dtime.values)
+            fhs0 = np.arange(fhs[-1], fhs[0]-1, 0-span)[::-1]
+            grd_sum = grd_sum.sel(dtime = fhs0.tolist())
+        return grd_sum
     elif used_coords =="time" or used_coords ==["time"]:
         if span ==None:
             grid0 = meteva_base.get_grid_of_data(grd)
             grid1 = meteva_base.grid(grid0.glon, grid0.glat, [grid0.gtime[1]], grid0.dtimes, grid0.levels, grid0.members)
             grd_sum = meteva_base.grid_data(grid1)
             grd_sum.values[:, :, 0, :, :, :] = np.sum(grd.values[:, :, :, :, :, :], axis=2)
-            return grd_sum
         else:
             grid0 = meteva_base.get_grid_of_data(grd)
             grd_sum = meteva_base.grid_data(grid0)
@@ -626,11 +628,10 @@ def sum_of_grd(grd,used_coords = ["member"],span = None):
                     i_k = i + k
                     if i_k <0:continue
                     sum_v += grd.values[:, :, i_k, :, :, :]
-
                 grd_sum.values[:, :, i, :, :, :] = sum_v
 
             grd_sum = grd_sum.isel(time = slice(count-1,ntime))
-            return grd_sum
+        return grd_sum
 
 
 

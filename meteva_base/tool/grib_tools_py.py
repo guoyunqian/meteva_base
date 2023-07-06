@@ -247,7 +247,7 @@ if __name__ == '__main__':
     lats = [39.95]
     sta_info = get_stainfo(lons=lons, lats=lats)
     file = r"J:\Z_NWGD_C_BABJ_20230505055246_P_RFFC_SCMOC-ER01_202305050500_03601.GRB2"
-    array = read_pygrib(file, dset=True)
-    sta = meb.interp_gs_linear(array, sta=sta_info)
+    array = read_pygrib(file, dset=True)#返回xr.dataset数据
     print(array)
+    sta = meb.interp_gs_linear(array.unknown, sta=sta_info)
     print(sta)
