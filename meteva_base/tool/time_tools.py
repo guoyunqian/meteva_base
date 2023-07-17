@@ -179,5 +179,61 @@ def get_time_of_path(path_model,path):
         ss = 0
     return datetime.datetime(yy,mm,dd,hh,ff,ss)
 
+#### 时间相关操作函数
+def _get_date_from_str(input,get_datetime64=False):
+    '''
+    输入str/datetime64/datetime时，输出datetime或np.datetime（通过get_datetime64参数控制）
+    '''
+    if isinstance(input, int):##输入为数字时
+        input = ''.join([x for x in gtime[i] if x.isdigit()])
+    if type(input) == str:## 输入为字符串
+        num = ''.join([x for x in input if x.isdigit()])
+        # 用户输入2019041910十位字符，后面补全加0000，为14位统一处理
+        if len(num) == 4:
+            num += "0101000000"
+        elif len(num) == 6:
+            num +="01000000"
+        elif len(num) == 8:
+            num +="000000"
+        elif len(num) == 10:
+            num +="0000"
+        elif len(num) == 12:
+            num +="00"
+        else:
+            print("输入日期有误，请检查！")
+        # 统一将日期变为datetime类型
+        stime = datetime.datetime.strptime(num, '%Y%m%d%H%M%S')#返回datetime
+        if get_datetime64 :
+            stime = np.datetime64(stime)#返回datetime64                
+    elif isinstance(input,np.datetime64):## 输入为datetime64
+        if get_datetime64:
+            stime = input
+        else:
+            stime = input.astype(datetime.datetime)
+            print("here",stime)
+            if isinstance(stime, int):
+                stime = datetime.datetime.utcfromtimestamp(stime / 1000000000)                
+    elif isinstance(input, datetime.datetime):## 输入为datetime.datetime
+        if get_datetime64:
+            stime = np.datetime64(input)#返回datetime64
+        else:
+            stime = input
+    return(stime)
 
-
+def get_date_list_pd(gtime=['2020060700', '2020060712', 12], delta='H'):
+    ## 获取多时间列表
+    """
+    gtime参数（start_date_str, end_date_str, hour_intervals）
+    """
+    num1 =[]
+    if type(gtime[0]) == str:
+        for i in range (0,2):
+            num = ''.join([x for x in gtime[i] if x.isdigit()])
+            num1.append(_get_date_from_str(num, get_datetime64=True))
+        stime = num1[0]
+        etime = num1[1]
+    else:
+        stime = _get_date_from_str(gtime[0])
+        etime = _get_date_from_str(gtime[1])
+    times = pd.date_range(stime, etime, freq=str(gtime[2])+delta)
+    return(times.to_pydatetime())#返回datetime类型数组
