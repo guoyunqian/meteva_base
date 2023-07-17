@@ -307,9 +307,6 @@ def speed_angle_to_wind(speed,angle = None):
         sta["v"] = v
         sta = sta.drop(["speed", "angle"], axis=1)
         return sta
-
-
-
     else:
         speed_v = speed.values.squeeze()
         angle_v = angle.values.squeeze()

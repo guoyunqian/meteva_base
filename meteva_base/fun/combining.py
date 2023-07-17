@@ -46,8 +46,8 @@ def concat(data_list):
         for i in range(len(members_all)):
             index_member[members_all[i]] = i
 
-        for i in range(ngrd):
-            grd_interp = meteva_base.interp_gg_linear(data1_list[i], grid_xy)
+        for x in range(ngrd):
+            grd_interp = meteva_base.interp_gg_linear(data1_list[x], grid_xy)
             levels = grd_interp["level"].values
             times = grd_interp["time"].values
             dtimes = grd_interp["dtime"].values

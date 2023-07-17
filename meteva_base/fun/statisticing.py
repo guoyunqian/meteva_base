@@ -1,5 +1,6 @@
 # import meteva
 import meteva_base
+import meteva_base as meb
 import numpy as np
 import pandas as pd
 import datetime
@@ -707,3 +708,197 @@ def loc_of_min(sta,used_coords = ["dtime"],ignore_missing = False):
     sta1 = sta.copy()
     sta1.iloc[:,6:] *= -1
     return loc_of_max(sta1,used_coords=used_coords,ignore_missing = ignore_missing)
+
+
+
+######### 格点数据时间拆分技术  #########
+
+def read_multi_griddata(fmt, time, fhs, io_method=None, is_ob=False, is_fill0=True):
+    """
+    读取多时次网格数据，并merge融合为DataSet输出
+    is_ob: 是否实况。是：time=time+fh,fh=0.
+    is_fill0: 当dtime=0时，是否自动赋值value=0
+    """
+    import xarray as xr
+    if io_method == None:
+        io_method = meb.read_griddata_from_nc
+    grd_list =[]
+    flag0 = 0 ##是否需要补fh=0时刻的0值
+    for i,fh in enumerate(fhs):
+        if is_ob:
+            time0 = time+datetime.timedelta(hours=int(fh))
+            fh0 = 0
+        else:
+            time0 = time
+            fh0 = fh
+        tp03_file = meb.get_path(fmt, time=time0,  dt=int(fh0))
+        if i%5==0: print('Read FILE: ',i, time0, fh0, tp03_file)
+        if not os.path.exists(tp03_file):
+            print('File missing: {}-{}'.format(time0, fh0))
+            continue
+        if not is_fill0:#不需要补0，直接读取fh=0
+            grd = io_method(tp03_file)
+            meb.set_griddata_coords(grd, gtime=[time0], dtime_list=[fh0])
+            grd_list.append(grd)
+        else:#无fh=0的数据，直接补0
+            if fh0==0:#为0时，需要补充
+                flag0 = 1
+            else:
+                grd = io_method(tp03_file)
+                meb.set_griddata_coords(grd, gtime=[time0], dtime_list=[fh0])
+                if flag0:#先补充fh=0的零值网格数据
+                    grd_00 = grd.copy()
+                    grd_00.values = np.zeros_like(grd_00.values)
+                    meb.set_griddata_coords(grd_00, dtime_list=[0])
+                    grd_list.append(grd_00)
+                    flag0 = 0
+                grd_list.append(grd)
+    ## 组合数据
+    try:
+        grd_list0 = [i.astype(np.float32) for i in grd_list]
+        del(grd_list)
+        grd_all = meb.concat(grd_list0)
+    except Exception as err:
+        print(err)
+        return None
+    return grd_all
+
+
+def cal_griddata_TimeSplit(input_fmt,  time, output_fmt=None,
+    input_fh_list=np.arange(3,73,3), output_fh_list=np.arange(0,73,1),  interp_method='slinear', io_method = None,
+    uv_fmt = None, #如非None,风速合成
+    delta_hour = None, #delta变量
+    is_fill0 = False, #fh=0时是读取文件或填0值
+    ):
+    """
+    时间拆分预处理，包括uv生成风速、逐delta小时相减等计算
+    """
+    ## read data
+    fh03_list = input_fh_list
+    fh01_list = output_fh_list
+    try:
+        ## 组合数据 
+        grd_all = read_multi_griddata(input_fmt, time, fh03_list, io_method=io_method, is_fill0=is_fill0)#DataArray
+        print(grd_all)
+        ## 预处理, UV风读取并合成风速
+        if uv_fmt is not None:
+            grd_0 = read_multi_griddata(uv_fmt, time, fh03_list, io_method=io_method, is_fill0=is_fill0)#读取v分量
+            print(grd_0)
+            # grd_all, _ = cal_wswd_from_meteva_uvgrid(grd_all, grd_0)#计算风速
+            grd_all, _ = meb.u_v_to_speed_angle(grd_all, grd_0)#计算风速
+        ## 拆分数据
+        grd_all_01h = grd_all.interp(dtime=fh01_list, method=interp_method, kwargs={"fill_value": "extrapolate"})    
+        ## 后处理，计算时间变量(delta)
+        if delta_hour is not None:
+            grd_all_01h = meb.change(grd_all_01h, delta=delta_hour, used_coords="dtime")
+    except Exception as err:
+        print(err)
+        return None,None
+    # 输出
+    if output_fmt is not None:#输出拆分结果nc
+        for fh01 in fh01_list:
+            out_file = meb.get_path(output_fmt, time=time, dt=fh01)
+            if not os.path.exists(out_file):
+                try:
+                    grd_01h = grd_all_01h.sel(dtime=[fh01]).astype(np.float32)
+                    # grd_01h = grd_01h.astype(np.float32)
+                    grd_01h.values[grd_01h.values<0] = 0#最小为0
+                    meb.write_griddata_to_nc(grd_01h, out_file, effectiveNum=2, creat_dir=True)
+                    print(out_file)
+                except Exception as err:
+                    print(err, time, fh01)
+                    continue
+    return(grd_all_01h, grd_all)
+
+
+class EnsData_Pre_rain03(object):
+    """
+    集合预报(网格数据)预处理，多时次预报合并，拆分至03h，从tp中计算rain03(时段累积)
+    """
+    def __init__(self,  input_fmt=None, output_fmt=None, input_fh_list=np.arange(0,73,3), output_fh_list=np.arange(0,73,1),
+                        delta_hour=None,  interp_method='slinear', io_method = None):
+        self.input_fmt      = input_fmt
+        self.output_fmt     = output_fmt 
+        self.input_fh_list  = input_fh_list
+        self.output_fh_list = output_fh_list
+        self.delta_hour     = delta_hour
+        self.method         = interp_method
+        self.io_method      = io_method
+
+    def process(self, times):
+        for time in times:
+            print('Calculation: {}'.format(time))
+            grd_03, grd_all = cal_griddata_TimeSplit(input_fmt=self.input_fmt, time=time, output_fmt=self.output_fmt,
+                        input_fh_list=self.input_fh_list, output_fh_list=self.output_fh_list,
+                        delta_hour=self.delta_hour,
+                        interp_method=self.method, io_method=self.io_method, is_fill0=True)
+        return grd_03, grd_all
+
+######### 格点数据时间累加技术  #########
+def sum_grd01h_to_03_24h(input_fmt, time, output_fmt=None, output_fmt2=None,
+    input_fh_list=np.arange(1,25,1), 
+    span1=3, span2=None, 
+    io_method=None, is_ob=True):
+    """
+    将逐小时网格数据累加为其他时效(逐3h或逐24h<可选>)
+    is_ob: True-处理为观测时间time，fh=0； False-与预报一直的time+fh
+    """
+    import xarray as xr
+    fh01_list = input_fh_list
+    grd_all = read_multi_griddata(input_fmt, time, fh01_list, io_method=io_method, is_ob=is_ob)#DataArray
+    grd0 = grd_all
+    try:
+        ## 累加并提取
+        grd03 = meb.sum_of_grd(grd0, used_coords="time", span=span1)#包括全部03h
+        grd03 = _sel_keep_True(grd03, time, time0, add_hour=0-span1)
+        if span2 is not None:
+            grd24 = meb.sum_of_grd(grd0, used_coords="time", span=span2)#包括全部24h
+            grd24 = _sel_keep_True(grd24, time, time0, add_hour=0-span2)
+        else:
+            grd24 = None
+        # 输出
+        if output_fmt is not None:#输出拆分结果nc
+            fh03_list = grd03.dtime.values
+            for fh03 in fh03_list:
+                out_file = meb.get_path(output_fmt, time=time, dt=fh03)
+                if not os.path.exists(out_file):
+                    try:
+                        grd = grd03.sel(dtime=[fh03])
+                        grd.values[grd.values<0] = 0#最小为0
+                        meb.write_griddata_to_nc(grd, out_file, effectiveNum=2, creat_dir=True)
+                    except Exception as err:
+                        print(err, time, fh03)
+                        continue
+        if span2 is not None and output_fmt2 is not None :#输出拆分结果nc
+            fh24_list = grd24.dtime.values
+            for fh24 in fh24_list:
+                out_file = meb.get_path(output_fmt2, time=time, dt=fh24)
+                if not os.path.exists(out_file):
+                    try:
+                        grd = grd24.sel(dtime=[fh24])
+                        grd.values[grd.values<0] = 0#最小为0
+                        meb.write_griddata_to_nc(grd, out_file, effectiveNum=2, creat_dir=True)
+                    except Exception as err:
+                        print(err, time, fh24)
+                        continue
+        return(grd03, grd24)
+    except Exception as err:
+        print(Exception)
+        return None,None
+        
+
+def _sel_keep_True(grd, time, time0, add_hour=-3):
+    ## 3h累加及挑选
+    times03 = mtl.get_date_list_pd([time, time0, add_hour])
+    times03.sort()
+    dim_time = grd.coords["time"]#time维度
+    try:
+        temp = np.array([meb.all_type_time_to_datetime(i) for i in dim_time.values])
+        flag = np.isin(temp, times03)  #挑选合适的flag(time维度isin对应的times03范围内)
+        grd = grd.loc[
+            dict(time=flag)
+        ]
+        return grd
+    except Exception as err:
+        print(err)
+        return None
