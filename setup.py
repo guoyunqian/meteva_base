@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(  
     name = 'meteva_base',  
-    version = '0.1.6',
+    version = '0.1.7',
     description = 'base classes and functions of generally meteorogical usage, like Basic_class/IO/calculation/plot .etc',  
     long_description=long_description,
     long_description_content_type = None,

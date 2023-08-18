@@ -221,8 +221,8 @@ def _get_date_from_str(input,get_datetime64=False):
     return(stime)
 
 def get_date_list_pd(gtime=['2020060700', '2020060712', 12], delta='H'):
-    ## 获取多时间列表
     """
+    ## 输入起始、终止、间隔时间，获取多时间列表
     gtime参数（start_date_str, end_date_str, hour_intervals）
     """
     num1 =[]
@@ -237,3 +237,34 @@ def get_date_list_pd(gtime=['2020060700', '2020060712', 12], delta='H'):
         etime = _get_date_from_str(gtime[1])
     times = pd.date_range(stime, etime, freq=str(gtime[2])+delta)
     return(times.to_pydatetime())#返回datetime类型数组
+
+
+def get_groupby_date_list(date_list, by='month'):
+    """ 
+    para:
+        date_list   : 时间列表 List[datetime.datetime]
+        by          : 分组方式，支持逐年'year'/逐月'month'/逐日'day'
+    return：
+        分组后的二维时间列表 List[List[datetime.datetime]]
+        dim0为分组数，如逐年、逐月、逐日分组, 365天逐日分组时，len(dim0)=365
+        dim1为具体每组的时间列表，如逐日分组时，列表中为同一天的具体时间datetime,  
+
+    """
+    time_index = pd.DatetimeIndex(date_list)
+    time_index = time_index.sort_values(ascending=True)
+    print(by)
+    if by == 'year':
+        temp = time_index.year*10000
+    elif by == 'month':
+        temp = time_index.year*10000 + time_index.month*100
+    elif by == 'day':
+        temp = time_index.year*10000 + time_index.month*100 + time_index.day
+    else:
+        raise ValueError('by参数应为： 逐年year/逐月month/逐日day， 请检查！！')
+    time_pd = pd.DataFrame(temp, index=time_index,columns=['ymd'])
+    time_pd_g = time_pd.groupby(by='ymd')
+    time_monthly = []
+    for f in time_pd_g:
+        temp = f[1].index.to_pydatetime()
+        time_monthly.append(temp)
+    return time_monthly
