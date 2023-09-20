@@ -378,3 +378,42 @@ def get_during_path_list_in_dir(root_dir,all_path = None,start = None,end = None
         else:
             all_path.append(fi_d)
     return all_path
+
+# 返回文件名中对应的预报时间时效等信息
+def get_time_from_path(fmt=r"\\10.28.16.179\rucdata2\SC\HRCLDAS\T2\YYYY\YYYYMMDD\YYYYMMDDHHFF.nc" , 
+                    filename=r"\\10.28.16.179\rucdata2\SC\HRCLDAS\T2\2023\20230516\202305161000.nc"):
+    mo = 1
+    dd = 1
+    hh = 0
+    mm = 0
+    ss = 0
+    try:
+        ## TTT
+        if fmt.find('TTTT') >=0:
+            cdt = int(filename[fmt.find('TTTT'):fmt.find('TTTT')+4])
+        elif fmt.find('TTT') >=0:
+            cdt = int(filename[fmt.find('TTT'):fmt.find('TTT')+3])
+        elif fmt.find('TT') >=0:
+            cdt = int(filename[fmt.find('TT'):fmt.find('TT')+2])
+        else:
+            cdt = 24
+        ## year
+        if fmt.find('YYYY') >=0:
+            year = int(filename[fmt.find('YYYY'):fmt.find('YYYY')+4])
+        elif fmt.find('YY') >=0:
+            year = 2000 + int(filename[fmt.find('YY'):fmt.find('YY')+2])
+        else:
+            year = 2020
+        ## month
+        mo = int(filename[fmt.find('MM'):fmt.find('MM')+2])
+        ## day
+        dd = int(filename[fmt.find('DD'):fmt.find('DD')+2])
+        ## time
+        hh = int(filename[fmt.find('HH'):fmt.find('HH')+2])
+        mm = int(filename[fmt.find('FF'):fmt.find('FF')+2])
+        ss = int(filename[fmt.find('SS'):fmt.find('SS')+2])
+    except Exception as err:
+        print(err)
+    time_file  = datetime(year=year, month=mo, day=dd, hour=hh, minute=mm, second=ss)
+    dtime_file = cdt
+    return time_file, dtime_file
