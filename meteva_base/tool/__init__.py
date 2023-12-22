@@ -8,8 +8,7 @@ from . import copy_tools
 from . import plot_tools
 from . import grib_tools
 from . import maskout
-from .path_tools import get_path
-from .path_tools import creat_path
+from .path_tools import get_path, creat_path, copy_file, get_bakup_path_in_time_dtime, get_time_from_path
 
 from .copy_tools import copy_m4_to_nc,copy_data
 from .time_tools import all_type_time_to_datetime,all_type_time_to_time64,all_type_time_to_str

@@ -3,8 +3,8 @@
 import datetime as datetime
 import os as os
 import numpy as np
-from ..io import DataBlock_pb2
-from ..io.GDS_data_service import GDSDataService
+# from ..io import DataBlock_pb2
+# from ..io.GDS_data_service import GDSDataService
 # import meteva
 import meteva_base
 import re
@@ -414,6 +414,141 @@ def get_time_from_path(fmt=r"\\10.28.16.179\rucdata2\SC\HRCLDAS\T2\YYYY\YYYYMMDD
         ss = int(filename[fmt.find('SS'):fmt.find('SS')+2])
     except Exception as err:
         print(err)
-    time_file  = datetime(year=year, month=mo, day=dd, hour=hh, minute=mm, second=ss)
-    dtime_file = cdt
-    return time_file, dtime_file
+    time  = datetime(year=year, month=mo, day=dd, hour=hh, minute=mm, second=ss)
+    dtime = cdt
+    return time, dtime
+
+
+######### 文件操作 ######## 
+def _is_file_copy_by_time(source_file,local_file):
+    ## 判断源文件和转换文件关系，若源文件存在，转换文件不存在或修改时间早于源文件，则返回True   
+    if os.path.exists(source_file):
+        if not os.path.exists(local_file) or (os.path.getmtime(local_file)<os.path.getmtime(source_file)):
+            return(True)#满足上述条件，可以转换，返回TURE
+    return(False)
+
+
+def copy_file(source_file,local_file):
+    ## 复制本地文件至目标文件，如果目标文件不存在或修改时间早于本地文件，则启动文件夹创建+复制
+    import shutil
+    if _is_file_copy_by_time(source_file,local_file):
+        #确认需复制
+        #文件夹
+        path = os.path.split(local_file)[0]
+        if not os.path.exists(path) : os.makedirs(path)
+        #文件复制
+        shutil.copyfile(source_file,local_file)
+        print("COPY: {0} - {1}".format(source_file,local_file))
+    return()
+
+
+############# 文件BackUP相关
+def _check_all_files(fmt,time,dtimes):
+    # 检验时间时效对应的通配文件，是否全部存在
+    # 当dtime<0 时， 不检查直接通过
+    # 返回为True即该时效列表对应文件全存在，False则为不全存在
+    flag = True 
+    miss = []
+    for dtime in dtimes:  
+        if dtime < 0 :
+            continue      
+        filename = meb.get_path(fmt, time=time, dt=dtime)
+        if not os.path.exists(filename):
+            # print("FILE not Existed: {}".format(filename))
+            flag = False
+            miss.append(dtime)
+    miss = np.array(miss)
+    return(flag, miss)
+
+## 备份中与起报时间对应的预报时效的转换
+def _dt_fh_cal(dt_raw,dt_new,fh_raw,unit='hour', keep_max=False):
+    ## 变换生成备份后fh列表,
+    ## keep_max为True时，保证最大、最小值与原列表一致
+    if unit == 'hour':
+        delta_hr = int((dt_new-dt_raw).total_seconds()/3600)
+    elif unit == 'minute':
+        delta_hr = int((dt_new-dt_raw).total_seconds()/60)
+    if type(fh_raw) is not np.ndarray:
+        print(type(fh_raw))
+        fh_raw = np.array(fh_raw)
+    fh_new = fh_raw-delta_hr
+    # print(fh_new)
+    ## 小于0时效赋值为NaN
+    fh_new[fh_new<0] = -1
+    if keep_max:
+        fh_new[fh_new<0] = np.min(fh_new[fh_new>=0])
+    return fh_new
+
+## 备份文件
+def _copyfiles_time_dtimes(time0, dtimes0, fmt0,
+                            time1, dtimes1, fmt1,
+                            func = None, show=False, **args):
+    import shutil
+    ## 0为目的文件(copy to)， 1为源文件(待copy)
+    ## dtime1待备份文件的预报时效<0时， 直接跳过不复制
+    ## func: 复制外的其他处理，可用func函数定义: func(file1, file0)#读取file1， 输出file0
+    if not len(dtimes0) == len(dtimes1):
+        raise IOError("copy dtimes_length must the SAME")
+        return None
+    for dtime0, dtime1 in zip(dtimes0, dtimes1):
+        if dtime1 < 0:
+            continue
+        else:
+            file0 = meb.get_path(fmt0, time=time0, dt=dtime0)#copy to
+            file1 = meb.get_path(fmt1, time=time1, dt=dtime1)#copy from
+            if not os.path.exists(file1):
+                print('FILE not EXISTED: {0}'.format(file1))
+                continue
+            if func is None:
+                func = copy_file
+            if show:
+                print("FROM {0}, TO {1}".format(file1, file0))
+            dirname = os.path.dirname(file0)
+            # if not os.path.exists(dirname): os.makedirs(dirname)
+            func(file1, file0, **args)
+    return None
+
+
+def get_bakup_path_in_time_dtime(time, dtimes, fmt, 
+                    fmt_bak, bak_h=10, delta=1, unit='hour',
+                    func=None, show=True, **args):
+    import copy
+    ## 从备份文件中，挑选满足
+    ## bak process
+    # bak_h: 向前寻找的time length
+    # delta：向前寻找time_delta,  unit: 'hour' or 'minute'
+    # args : func parameters
+    time_raw = copy.copy(time)
+    print('Processing Datetime: {0}'.format(time_raw))
+    ## raw file existed?
+    result = _check_all_files(fmt,time,dtimes)
+    if result[0] is True:
+        print("FILES EXIST, no Backup: {0}".format(time_raw))
+        return None
+    dtimes_raw = result[1]# miss file dtimes
+    delta_time = delta
+    while delta_time <= bak_h:
+        if unit=='hour':
+            time_bak = time - datetime.timedelta(hours=delta_time) #hour
+        else:
+            time_bak = time - datetime.timedelta(minutes=delta_time) #minute
+        dtimes_bak = _dt_fh_cal(time_raw, time_bak, dtimes_raw, unit=unit)
+        ## check files existed
+        result = _check_all_files(fmt_bak, time_bak, dtimes_bak)
+        if result[0] is False:# bak file not complete  
+            if show : print("BAK TIME miss FILES: {0}. CONTINUE!".format(time_bak))
+            delta_time += delta
+            continue 
+        else:# bak file complete
+            if show : print("BAK TIME all EXIST : {0}. Start PROCESS!".format(time_bak))
+            _copyfiles_time_dtimes(time_raw, dtimes_raw, fmt,
+                            time_bak, dtimes_bak, fmt_bak, 
+                            func=func, show=show, **args)
+            print("SUCCESS BAK: {0} - {1}".format(time_bak, dtimes_bak))
+            return None
+    print("File not Matching: {0}".format(time_raw))
+    return None
+
+
+if __name__ == "__main__":
+    pass

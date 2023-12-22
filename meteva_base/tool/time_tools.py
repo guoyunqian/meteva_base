@@ -221,7 +221,7 @@ def _get_date_from_str(input,get_datetime64=False):
             stime = input
     return(stime)
 
-def get_date_list_pd(gtime=['2020060700', '2020060712', 12], delta='H'):
+def get_date_list_create(gtime=['2020060700', '2020060712', 12], delta='H'):
     """
     ## 输入起始、终止、间隔时间，获取多时间列表
     gtime参数（start_date_str, end_date_str, hour_intervals）
@@ -240,7 +240,7 @@ def get_date_list_pd(gtime=['2020060700', '2020060712', 12], delta='H'):
     return(times.to_pydatetime())#返回datetime类型数组
 
 
-def get_groupby_date_list(date_list, by='month'):
+def get_date_list_groupby(date_list, by='month'):
     """ 
     para:
         date_list   : 时间列表 List[datetime.datetime]
@@ -269,3 +269,63 @@ def get_groupby_date_list(date_list, by='month'):
         temp = f[1].index.to_pydatetime()
         time_monthly.append(temp)
     return time_monthly
+
+
+#### 根据日期，时区，计算日出日落时间等
+from math import sin, asin, cos, acos, tan, radians, pi, degrees
+def _astro_time(date):
+    Dn = int(date.strftime('%j'))
+    # 第一步：计算太阳倾角(太阳直射点纬度)decl和equation of time
+    gamma = 2*pi*(Dn - 1 + (12 - 12)/24)/365  #5.61757
+    # 计算eqtime
+    eqtime = 229.18*(0.000075 + 0.001868*cos(gamma) - 0.032077*sin(gamma) - 0.014615*cos(2*gamma) - 0.040849*sin(2*gamma))
+    # 计算decl
+    f1 = 0.006918
+    f2 = 0.399912*cos(gamma)
+    f3 = 0.070257*sin(gamma)
+    f4 = 0.006758*cos(gamma*2)
+    f5 = 0.000907*sin(gamma*2)
+    f6 = 0.002697*cos(gamma*3)
+    f7 = 0.001480*sin(gamma*3)
+    decl = f1 - f2 + f3 - f4 + f5 - f6 + f7 #-0.3537
+    return(eqtime, decl)
+
+def get_sunrise_sunset_time(lon, lat, date, timezone=8):
+    # lon lat 为经纬度，numpy数组形式,  date: 今天日期，datetime形式
+        # 第零步：将日期转化为日期序数，1,2,3......，365；将时间转化为24小时制浮点数，如18:30转为18.5
+    # return 日出时间及日落时间, 数组numpy，浮点数形式(非时分秒)
+
+    if not isinstance(lon, np.ndarray):
+        lon = np.array(lon)
+    if not isinstance(lat, np.ndarray):
+        lat = np.array(lat)
+    if not isinstance(date, datetime.datetime):
+        try:
+            date = datetime.datetime.strptime(date, '%Y/%m/%d')
+        except Exception as err:
+            print(err)
+            return None
+    eqtime, decl = _astro_time(date)#天文时间相关
+    # 第一步：计算太阳时角和方位角180度时的时间
+    time_offset = eqtime + 4*lon - 60*timezone
+    tst = 12*60 + time_offset
+    ha = (tst/4 - 180)
+    snoon = (720 - 4*lon - eqtime)/60 + timezone #——>ndarray
+
+    lat = np.radians(lat)
+    ha = np.radians(ha)  # 注意转为弧度
+
+    # 第二步：计算日出日落时间
+    zenith = radians(90.833)
+    ha = np.arccos(cos(zenith)/(np.cos(lat)*cos(decl)) - np.tan(lat)*tan(decl))
+    ha = np.degrees(ha)  # 注意转为角度 ,73.229 ->ndarray
+    sunrise = snoon - ha/15
+    sunset = snoon + ha/15
+    return sunrise, sunset
+
+
+
+if __name__ == "__main__":
+
+    print(get_sunrise_sunset_time([116.5], [39.9], datetime.datetime(2023,12,22 ), 8)) # 北京14时
+    
