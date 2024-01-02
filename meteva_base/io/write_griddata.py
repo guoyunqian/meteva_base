@@ -81,18 +81,18 @@ def write_griddata_to_micaps4(da, save_path="a.txt", creat_dir=False, effectiveN
         if title is None:
             title = ("diamond 4 " + save_path[start:end] + "\n"
                      + year + " " + month + " " + day + " " + hour + " " + hour_range + " " + str(level) + "\n"
-                     + "{:.6f}".format(grid.dlon) + " " + "{:.6f}".format(grid.dlat) + " " + "{:.6f}".format(
-                        grid.slon) + " " + "{:.6f}".format(grid.elon) + " "
-                     + "{:.6f}".format(grid.slat) + " " + "{:.6f}".format(grid.elat) + " " + str(grid.nlon) + " " + str(
+                     + "{:.5f}".format(grid.dlon) + " " + "{:.5f}".format(grid.dlat) + " " + "{:.5f}".format(
+                        grid.slon) + " " + "{:.5f}".format(grid.elon) + " "
+                     + "{:.5f}".format(grid.slat) + " " + "{:.5f}".format(grid.elat) + " " + str(grid.nlon) + " " + str(
                         grid.nlat) + " "
                      + str(inte) + " " + str(vmin) + " " + str(vmax) + " 1 0")
         else:
 
             title = ("diamond 4 " + title + "\n"
                      + year + " " + month + " " + day + " " + hour + " " + hour_range + " " + str(level) + "\n"
-                     + "{:.6f}".format(grid.dlon) + " " + "{:.6f}".format(grid.dlat) + " " + "{:.6f}".format(
-                        grid.slon) + " " + "{:.6f}".format(grid.elon) + " "
-                     + "{:.6f}".format(grid.slat) + " " + "{:.6f}".format(grid.elat) + " " + str(grid.nlon) + " " + str(
+                     + "{:.5f}".format(grid.dlon) + " " + "{:.5f}".format(grid.dlat) + " " + "{:.5f}".format(
+                        grid.slon) + " " + "{:.5f}".format(grid.elon) + " "
+                     + "{:.5f}".format(grid.slat) + " " + "{:.5f}".format(grid.elat) + " " + str(grid.nlon) + " " + str(
                         grid.nlat) + " "
                      + str(inte) + " " + str(vmin) + " " + str(vmax) + " 1 0")
 
