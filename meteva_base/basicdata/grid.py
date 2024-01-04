@@ -3,14 +3,43 @@ import datetime
 import re
 from copy import deepcopy
 import numpy as np
+import pandas as pd
+
+import meteva_base
+
 
 class grid:
     '''
         定义一个格点的类grid，来存储网格的范围包括（起始经纬度、格距、起止时间，时间间隔，起止时效，时效间隔，层次列表，数据成员）
         约定坐标顺序为: member, time,ddtime, level, lat,lon
     '''
-    def __init__(self,glon, glat, gtime=None, dtime_list=None,level_list=None,member_list = None):
-
+    def __init__(self,glon, glat, gtime=None, dtime_list=None,level_list=None,member_list = None,
+                        units_attr      = None,#数据单位
+                        model_var_attr  = None,#补充模式/要素信息
+                        dtime_units_attr= 'hour',# hour/minite
+                        level_type_attr = 'isobaric',# isobaric/attitude
+                        time_type_attr  = 'UT',#UT/BT
+                        time_bounds_attr= [0,0],#数据起止时间
+                        ):
+        """
+        ## 格点坐标设置
+        param glon : 东西向网格信息，list列表，[最小，最大，间隔]
+        param glat : 南北向网格信息，list列表，[最小，最大，间隔]
+        param gtime: 起报时间网格信息：若gtime只包含1个元 素，其内容为datetime变量，或者常用字符形式时间，例如"2019123108"、"2019-12-31:08"或"19年12月31日08时"等方式都能兼容。
+                    若gtime包含三个元素，其内容为[起始时间,结束时间,时间间隔], 其中时间格式可以是datetime变量或者字符串形式，时间间隔为字符串，例如"12h"代表12小时，"30m"代表30分钟。
+                    若为列表且非上述要素，则是直接的datetime列表
+        param dtime_list: 时效信息，list列表，其元素dtime为整数, 默认为[0]
+        param level_list: 层次名称信息，list列表，默认为[0]
+        param member_list:成员名称信息，list列表，默认为['data0']
+        ## 格点属性设置
+        param units_attr      : 数据单位, 默认为None,
+        param model_var_attr  : 补充模式/要素信息,默认为None
+        param dtime_units_attr: 预报时效单位，hour/minite,默认为'hour' 
+        param level_type_attr : 层次单位，isobaric/attitude，默认为'isobaric'等压面
+        param time_type_attr  : 起报时间类型，UT（世界时间）/BT(北京时间)，默认'UT'
+        time_bounds_attr      : 数据起止时间，如24h降水为[-24,0], 默认[0,0]
+        
+        """
         #提取成员维度信息
         if(member_list is None):
             self.members =['data0']
@@ -24,113 +53,32 @@ class grid:
             self.levels = level_list
         ############################################################################
         #提取时间维度信息
-        self.stime = np.datetime64('2099-01-01T00:00:00.000000')
-        self.etime = np.datetime64('2099-01-01T00:00:00.000000')
-        self.dtime_int = 1
-        self.dtime_type = "h"
-        self.dtimedelta = np.timedelta64(1,'h')
-        if(gtime == None):gtime = []
-        if len(gtime) == 1:
-            if type(gtime[0]) == str:
-                num = ''.join([x for x in gtime[0] if x.isdigit()])
-                # 用户输入2019041910十位字符，后面补全加0000，为14位统一处理
-                if len(num) == 4:
-                    num += "0101000000"
-                elif len(num) == 6:
-                    num +="01000000"
-                elif len(num) == 8:
-                    num +="000000"
-                elif len(num) == 10:
-                    num +="0000"
-                elif len(num) == 12:
-                    num +="00"
-                elif len(num) == 14:
-                    pass
-                else:
-                    print("输入日期有误，请检查！")
-                # 统一将日期变为datetime类型
-                self.stime = datetime.datetime.strptime(num, '%Y%m%d%H%M%S')
-                self.etime = datetime.datetime.strptime(num, '%Y%m%d%H%M%S')
-                self.stime = np.datetime64(self.stime)
-                self.etime = np.datetime64(self.etime)
-            else:
-                self.stime = gtime[0]
-                self.etime = gtime[0]
+        # try:
+        if gtime is None:
+            self.stime = np.datetime64('2020-01-01T00:00:00.000000')
+            self.etime = np.datetime64('2020-01-01T00:00:00.000000')
             self.dtime_int = 1
             self.dtime_type = "h"
-            self.dtimedelta = np.timedelta64(0,'h')
-        elif len(gtime) ==3:
-            num1 =[]
-            if type(gtime[0]) == str:
-                for i in range (0,2):
-                    num = ''.join([x for x in gtime[i] if x.isdigit()])
-                    #用户输入2019041910十位字符，后面补全加0000，为14位统一处理
-                    if len(num) == 4:
-                        num1.append(num + "0101000000")
-                    elif len(num) == 6:
-                        num1.append(num + "01000000")
-                    elif len(num) == 8:
-                        num1.append(num + "000000")
-                    elif len(num) == 10:
-                        num1.append(num + "0000")
-                    elif len(num) == 12:
-                        num1.append(num + "00")
-                    elif len(num) == 14:
-                        num1.append(num)
-                    else:
-                        print("输入日期有误，请检查！")
-                    #统一将日期变为datetime类型
-                #print(num1)
-                self.stime = datetime.datetime.strptime(num1[0], '%Y%m%d%H%M%S')
-                self.etime = datetime.datetime.strptime(num1[1], '%Y%m%d%H%M%S')
-                self.stime = np.datetime64(self.stime)
-                self.etime = np.datetime64(self.etime)
-            elif isinstance(gtime[0],np.datetime64):
-                stime = gtime[0].astype(datetime.datetime)
-                etime = gtime[1].astype(datetime.datetime)
-                if isinstance(stime, int):
-                    stime = datetime.datetime.utcfromtimestamp(stime / 1000000000)
-                    etime = datetime.datetime.utcfromtimestamp(etime / 1000000000)
-                self.stime = stime
-                self.etime = etime
-            else:
-                self.stime = gtime[0]
-                self.etime = gtime[1]
+            self.times = pd.date_range(self.stime, self.etime, freq=str(self.dtime_int)+self.dtime_type ).to_pydatetime()
+        else:
+            try:
+                _ = len(gtime)
+            except:
+                gtime = [gtime]
+            if len(gtime) == 1:
+                self.times = meteva_base.basicdata.utils.get_time_input_single(gtime)
 
-            if type(gtime[2]) == str:
-                self.dtime_int = re.findall(r"\d+", gtime[2])[0]
-                dtime_type = re.findall(r"\D+", gtime[2])[0]
-                if dtime_type == 'h':
-                    self.dtime_type ="h"
-                    self.dtimedelta = np.timedelta64(self.dtime_int,'h')
-                elif dtime_type == 'd':
-                    self.dtime_type ="D"
-                    self.dtimedelta = np.timedelta64(self.dtime_int, 'D')
-                elif dtime_type == 'm':
-                    self.dtime_type ="m"
-                    self.dtimedelta = np.timedelta64(self.dtime_int, 'm')
-            elif isinstance(gtime[2],np.timedelta64):
-                seconds = int(gtime[2] / np.timedelta64(1, 's'))
-                if seconds % 3600 == 0:
-                    self.dtime_type = "h"
-                    self.dtime_int = int(seconds / 3600)
-                else:
-                    self.dtime_type = "m"
-                    self.dtime_int = int(seconds / 60)
-            else:
-                self.dtimedelta = gtime[2]
-                seconds = gtime[2].total_seconds()
-                if seconds % 3600 == 0:
-                    self.dtime_type = "h"
-                    self.dtime_int = int(seconds/3600)
-                else:
-                    self.dtime_type = "m"
-                    self.dtime_int = int(seconds / 60)
-        self.gtime = [self.stime,self.etime,str(self.dtime_int) + self.dtime_type]
-        self.stime_str = str(self.stime).replace("-","").replace(" ","").replace(":","").replace("T","")[0:14]
-        self.etime_str = str(self.etime).replace("-", "").replace(" ", "").replace(":", "").replace("T", "")[0:14]
-        self.dtime_str = str(self.dtime_int) + self.dtime_type
+            elif len(gtime) ==3 and isinstance(gtime[2],str) and len(gtime[2])<=5:
+                self.times = meteva_base.basicdata.utils.get_time_input_three(gtime)
 
+            else:
+                if isinstance(gtime[0], datetime.datetime):
+                    self.times = gtime
+                else:
+                    self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
+                    # self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
+        # except Exception as err:
+            # print('gtime ERROR: ',err)
         ############################################################################
         #提取预报时效维度信息
         if dtime_list is None:
@@ -152,7 +100,6 @@ class grid:
 
         self.elon = get_true_value(self.slon + (nlon - 1) * self.dlon)
         self.glon = [self.slon,self.elon,self.dlon]
-
         ############################################################################
         #提取纬度信息
         self.slat = get_true_value(glat[0])
@@ -166,6 +113,15 @@ class grid:
             self.nlat = int(round(nlat))
         self.elat = get_true_value(self.slat + (nlat - 1) * self.dlat)
         self.glat = [self.slat,self.elat,self.dlat]
+        ## 格点数据属性设置(6属性)
+        self.units       = units_attr
+        self.model_var   = model_var_attr
+        self.dtime_units = dtime_units_attr
+        self.level_type  = level_type_attr
+        self.time_type   = time_type_attr
+        self.time_bounds = time_bounds_attr
+        return
+
 
 
 
@@ -196,12 +152,21 @@ class grid:
         :return:  string
         '''
         grid_str = ""
+        grid_str += "## grid_coordinates ##" + "\n"
         grid_str += "members:" + str(self.members) +"\n"
         grid_str += "levels:" + str(self.levels) + "\n"
-        grid_str += "gtime:" + str([self.stime_str,self.etime_str,self.dtime_str]) + "\n"
+        # grid_str += "gtime:" + str([self.stime_str,self.etime_str,self.dtime_str]) + "\n"
+        grid_str += "gtime:" + str(self.times)  +"\n"
         grid_str += "dtimes:" + str(self.dtimes)  +"\n"
         grid_str += "glon:" + str(self.glon) + "\n"
         grid_str += "glat:" + str(self.glat) + "\n"
+        grid_str += "## grid_attributes ##" +  "\n"
+        grid_str += "units:" + str(self.units) + "\n"
+        grid_str += "model_var:" + str(self.model_var) + "\n"
+        grid_str += "dtime_units:" + str(self.dtime_units) + "\n"
+        grid_str += "level_type:" + str(self.level_type) + "\n"
+        grid_str += "time_type:" + str(self.time_type) + "\n"
+        grid_str += "time_bounds:" + str(self.time_bounds) + "\n"
         return grid_str
 
 def get_true_value(value):
@@ -226,44 +191,33 @@ def get_grid_of_data(grid_data0):
     member_list = grid_data0['member'].values
     level_list = grid_data0['level'].values
     times = grid_data0['time'].values
-    #print(times)
-    if(len(times)>1):
-        gtime = [times[0],times[-1],times[1]-times[0]]
-    elif len(times) == 1:
-        gtime = times
-    else:
-        gtime = None
+    gtime = times
 
     gdt = grid_data0['dtime'].values.tolist()
     attrs_name = list(grid_data0.attrs)
 
 
     lons = grid_data0['lon'].values
-
-    #dlon5 = round(lons[1] - lons[0], 5)
-    #dlon6 = round(lons[1] - lons[0], 6)
-    #dlon7 = round(lons[1] - lons[0], 7)
-    #if dlon5 == dlon6 and dlon6 == dlon7:
-    #    dlon = dlon5
-    #else:
-    #    dlon = lons[1]-lons[0]
     dlon = get_true_value(lons[1] - lons[0])
-
-    #glon = [lons[0],round(lons[-1],5),round(lons[1]-lons[0],5)]
     glon = [get_true_value(lons[0]), get_true_value(lons[-1]), dlon]
     lats = grid_data0['lat'].values
-    #dlat5 = round(lats[1] - lats[0], 5)
-    #dlat6 = round(lats[1] - lats[0], 6)
-    #dlat7 = round(lats[1] - lats[0], 7)
-    #if dlat5 == dlat6 and dlat6 == dlat7:
-    #    dlat = dlat5
-    #else:
-    #    dlat = lats[1]-lats[0]
     dlat = get_true_value(lats[1] - lats[0])
-
-    #glat = [lats[0],round(lats[-1],5),round(lats[1]-lats[0],5)]
     glat = [get_true_value(lats[0]), get_true_value(lats[-1]), dlat]
-    grid01 = grid(glon, glat, gtime, gdt, level_list, member_list)
+
+    units_attr       = grid_data0.attrs['units']
+    model_var_attr   = grid_data0.attrs['model_var']
+    dtime_units_attr = grid_data0.attrs['dtime_units']
+    level_type_attr  = grid_data0.attrs['level_type']
+    time_type_attr   = grid_data0.attrs['time_type']
+    time_bounds_attr = grid_data0.attrs['time_bounds']
+
+    grid01 = grid(glon, glat, gtime, gdt, level_list, member_list,
+                        units_attr      = units_attr,
+                        model_var_attr  = model_var_attr,
+                        dtime_units_attr= dtime_units_attr,
+                        level_type_attr = level_type_attr,
+                        time_type_attr  = time_type_attr,
+                        time_bounds_attr= time_bounds_attr)
     return grid01
 
 
@@ -279,3 +233,4 @@ def reset_grid(grid0):
         grid0.slon = grid0.elon
         grid0.elon = tran
     return
+

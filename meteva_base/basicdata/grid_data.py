@@ -7,15 +7,27 @@ import datetime
 import copy
 import meteva_base
 
-def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_list = None, member_list = None):
+def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_list = None, member_list = None,
+                        units_attr      = None,
+                        model_var_attr  = None,
+                        dtime_units_attr= None,
+                        level_type_attr = None,
+                        time_type_attr  = None,
+                        time_bounds_attr= None,
+                        ):
     """
     设置xarray的coords的一些属性
     :param grd:初始化之后的xarry结构的多维格点网格
     :param level:层次，默认为None
-    :param time：时间，默认为None
+    :param gtime：时间，默认为None
     :param dtime:时效，默认为None
     :param member：要素，默认为None
     如果level不为None，并且grd的level维度上size = 1，则将level方向的坐标统一设置为传入的参数level,time,dtime,member一样类似处理。
+    :param units_attr:       属性，数据单位，string类型，默认为None
+    :param dtime_units_attr: 属性，预报时效，hour/minute
+    :param level_type_attr:  属性，高度单位类型，isobaric/attitude
+    :param time_type_attr:   属性，预报时效，UT/BT
+    :param time_bounds_attr: 属性，要素起止时间，list类型，默认为[0,0]。如1小时降水为[-1,0]
     :return:grd:返回一个设置好的coords的格点网格信息。
     """
     if name is not None:
@@ -38,74 +50,38 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
             grd.coords["member"] = member_list
         else:
             print("member_list长度和grid_data的member维度的长度不一致")
-    ntime = int(len(grd.coords.variables.get(grd.coords.dims[2])))
 
+    ntime = int(len(grd.coords.variables.get(grd.coords.dims[2])))
     if gtime is not None:
         #time_list 内的内容兼容datetime 和str两种格式
-
+        if not isinstance(gtime, list): gtime = [gtime]
         if len(gtime) == 1:
-            if ntime == 1:
-                if type(gtime[0]) == str:
-                    num = ''.join([x for x in gtime[0] if x.isdigit()])
-                    # 用户输入2019041910十位字符，后面补全加0000，为14位统一处理
-                    if len(num) == 4:
-                        num += "0101000000"
-                    elif len(num) == 6:
-                        num +="01000000"
-                    elif len(num) == 8:
-                        num +="000000"
-                    elif len(num) == 10:
-                        num +="0000"
-                    elif len(num) == 12:
-                        num +="00"
-                    else:
-                        print("输入日期有误，请检查！")
-                    # 统一将日期变为datetime类型
-                    time1 = datetime.datetime.strptime(num, '%Y%m%d%H%M%S')
-                    grd.coords["time"] = [np.datetime64(time1)]
-                else:
-                    grd.coords["time"] = gtime
+            times = meteva_base.basicdata.utils.get_time_input_single(gtime)
+        elif len(gtime) ==3 and isinstance(gtime[2],str) and len(gtime[2])<=5: 
+            times = meteva_base.basicdata.utils.get_time_input_three(gtime)
+        else:
+            if isinstance(gtime[0], datetime.datetime):
+                times = gtime
             else:
-                print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
-        elif len(gtime) ==3:
-            num1 =[]
-            if type(gtime[0]) == str:
-                for i in range (0,2):
-                    num = ''.join([x for x in gtime[i] if x.isdigit()])
-                    #用户输入2019041910十位字符，后面补全加0000，为14位统一处理
-                    if len(num) == 4:
-                        num1.append(num + "0101000000")
-                    elif len(num) == 6:
-                        num1.append(num + "01000000")
-                    elif len(num) == 8:
-                        num1.append(num + "000000")
-                    elif len(num) == 10:
-                        num1.append(num + "0000")
-                    elif len(num) == 12:
-                        num1.append(num + "00")
-                    elif len(num) == 14:
-                        num1.append(num)
-                    else:
-                        print("输入日期有误，请检查！")
-                    #统一将日期变为datetime类型
-                stime = datetime.datetime.strptime(num1[0], '%Y%m%d%H%M%S')
-                etime = datetime.datetime.strptime(num1[1], '%Y%m%d%H%M%S')
-                stime = np.datetime64(stime)
-                etime = np.datetime64(etime)
-            else:
-                stime = gtime[0]
-                etime = gtime[1]
-
-
-
-            times = pd.date_range(stime, etime, freq=gtime[2])
-            if ntime == len(times):
-                grd.coords["time"] = times
-            else:
-                print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
-
-
-
+                times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
+    times = pd.DatetimeIndex(times)
+    if ntime == len(times):
+        grd.coords["time"] = times
+    else:
+        print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
+    # 设置格点数据属性
+    if units_attr is not None:
+        grd.attrs['units']       = units_attr
+    if units_attr is not None:
+        grd.attrs['model_var']   = model_var_attr
+    if dtime_units_attr is not None:
+        grd.attrs['dtime_units'] = dtime_units_attr
+    if level_type_attr is not None:
+        grd.attrs['level_type']  = level_type_attr
+    if time_type_attr is not None:
+        grd.attrs['time_type']   = time_type_attr
+    if time_bounds_attr is not None:
+        grd.attrs['time_bounds'] = time_bounds_attr
     return
 
 #返回一个DataArray，其维度信息和grid描述一致，数组里面的值为0.
@@ -119,12 +95,7 @@ def grid_data(grid,data=None):
     # 通过起始经纬度和格距计算经纬度格点数
     lon = np.arange(nlon) * dlon + slon
     lat = np.arange(nlat) * dlat + slat
-    dt_str = grid.gtime[2]
-    if dt_str.find("m")>=0:
-        dt_str = dt_str.replace("m","min")
-
-    times = pd.date_range(grid.stime, grid.etime, freq=dt_str)
-    #print(times)
+    times = pd.DatetimeIndex(grid.times)
     ntime = len(times)
     # 根据timedelta的格式，算出ndt次数和gds时效列表
 
@@ -144,17 +115,20 @@ def grid_data(grid,data=None):
     grd = (xr.DataArray(data, coords={'member': member_list,'level': level_list,'time': times,'dtime':gdt_list,
                                'lat': lat, 'lon': lon},
                          dims=['member', 'level','time', 'dtime','lat', 'lon']))
-
     grd.name = "data0"
+    ## 属性赋值
+    grd.attrs['units']       = grid.units
+    grd.attrs['model_var']   = grid.model_var
+    grd.attrs['dtime_units'] = grid.dtime_units
+    grd.attrs['level_type']  = grid.level_type 
+    grd.attrs['time_type']   = grid.time_type 
+    grd.attrs['time_bounds'] = grid.time_bounds
     return grd
 
 def xarray_to_griddata(xr0,
                        value_name=None, member_dim=None, level_dim=None, time_dim=None, dtime_dim=None, lat_dim=None,
                        lon_dim=None
                        ):
-
-
-
     da = None
     if isinstance(xr0,xr.DataArray):
         ds0 = xr.Dataset({'data0': xr0})
