@@ -7,6 +7,44 @@ import datetime
 import copy
 import meteva_base
 
+#返回一个DataArray，其维度信息和grid描述一致，数组里面的值为0.
+def grid_data(grid,data=None):
+    slon = grid.slon
+    dlon = grid.dlon
+    slat = grid.slat
+    dlat = grid.dlat
+    nlon = grid.nlon
+    nlat = grid.nlat
+    # 通过起始经纬度和格距计算经纬度格点数
+    lon = np.arange(nlon) * dlon + slon
+    lat = np.arange(nlat) * dlat + slat
+    times = pd.DatetimeIndex(grid.times)
+    ntime = len(times)
+    # 根据timedelta的格式，算出ndt次数和gds时效列表
+
+    ndt = len(grid.dtimes)
+    gdt_list = grid.dtimes
+
+    level_list = grid.levels
+    nlevel_list = len(level_list)
+
+    member_list = grid.members
+    nmember = len(member_list)
+    if data is None:
+        data = np.zeros((nmember, nlevel_list, ntime, ndt, nlat, nlon))
+    else:
+        data = data.reshape(nmember, nlevel_list, ntime, ndt, nlat, nlon)
+
+    grd = (xr.DataArray(data, coords={'member': member_list,'level': level_list,'time': times,'dtime':gdt_list,
+                               'lat': lat, 'lon': lon},
+                         dims=['member', 'level','time', 'dtime','lat', 'lon']))
+    grd.name = "data0"
+    ## 属性赋值
+    set_griddata_attrs(grd, units = grid.units, model_var = grid.model_var, dtime_units =grid.dtime_units,
+            level_type=grid.level_type , time_type=grid.time_type, time_bounds=grid.time_bounds)
+    return grd
+
+
 def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_list = None, member_list = None,
                         units_attr      = None,
                         model_var_attr  = None,
@@ -64,66 +102,15 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
                 times = gtime
             else:
                 times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
-    times = pd.DatetimeIndex(times)
-    if ntime == len(times):
-        grd.coords["time"] = times
-    else:
-        print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
+        times = pd.DatetimeIndex(times)
+        if ntime == len(times):
+            grd.coords["time"] = times
+        else:
+            print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
     # 设置格点数据属性
-    if units_attr is not None:
-        grd.attrs['units']       = units_attr
-    if units_attr is not None:
-        grd.attrs['model_var']   = model_var_attr
-    if dtime_units_attr is not None:
-        grd.attrs['dtime_units'] = dtime_units_attr
-    if level_type_attr is not None:
-        grd.attrs['level_type']  = level_type_attr
-    if time_type_attr is not None:
-        grd.attrs['time_type']   = time_type_attr
-    if time_bounds_attr is not None:
-        grd.attrs['time_bounds'] = time_bounds_attr
+    set_griddata_attrs(grd, units = units_attr, model_var = model_var_attr, dtime_units =dtime_units_attr,
+            level_type=level_type_attr , time_type=time_type_attr, time_bounds=time_bounds_attr)
     return
-
-#返回一个DataArray，其维度信息和grid描述一致，数组里面的值为0.
-def grid_data(grid,data=None):
-    slon = grid.slon
-    dlon = grid.dlon
-    slat = grid.slat
-    dlat = grid.dlat
-    nlon = grid.nlon
-    nlat = grid.nlat
-    # 通过起始经纬度和格距计算经纬度格点数
-    lon = np.arange(nlon) * dlon + slon
-    lat = np.arange(nlat) * dlat + slat
-    times = pd.DatetimeIndex(grid.times)
-    ntime = len(times)
-    # 根据timedelta的格式，算出ndt次数和gds时效列表
-
-    ndt = len(grid.dtimes)
-    gdt_list = grid.dtimes
-
-    level_list = grid.levels
-    nlevel_list = len(level_list)
-
-    member_list = grid.members
-    nmember = len(member_list)
-    if data is None:
-        data = np.zeros((nmember, nlevel_list, ntime, ndt, nlat, nlon))
-    else:
-        data = data.reshape(nmember, nlevel_list, ntime, ndt, nlat, nlon)
-
-    grd = (xr.DataArray(data, coords={'member': member_list,'level': level_list,'time': times,'dtime':gdt_list,
-                               'lat': lat, 'lon': lon},
-                         dims=['member', 'level','time', 'dtime','lat', 'lon']))
-    grd.name = "data0"
-    ## 属性赋值
-    grd.attrs['units']       = grid.units
-    grd.attrs['model_var']   = grid.model_var
-    grd.attrs['dtime_units'] = grid.dtime_units
-    grd.attrs['level_type']  = grid.level_type 
-    grd.attrs['time_type']   = grid.time_type 
-    grd.attrs['time_bounds'] = grid.time_bounds
-    return grd
 
 def xarray_to_griddata(xr0,
                        value_name=None, member_dim=None, level_dim=None, time_dim=None, dtime_dim=None, lat_dim=None,
@@ -872,16 +859,13 @@ def reset(grd):
     return
 
 
-def set_griddata_attrs(grd, dtime_units = None,data_source = None,level_type =None,
-             var_name = None,var_cn_name = None,
-             var_units = None,valid_time = None,data_start_columns = None):
-
+def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
+            level_type=None ,time_type=None , time_bounds=None):
     if grd.attrs is None: grd.attrs = {}
-    if dtime_units is not None:grd.attrs["dtime_units"] = dtime_units
-    if data_source is not None:grd.attrs["data_source"] = data_source
-    if level_type is not None: grd.attrs["data_type"] = level_type
-    if var_name is not None: grd.attrs["var_name"] = var_name
-    if var_cn_name is not None:grd.attrs["var_cn_name"] = var_cn_name
-    if var_units is not None:grd.attrs["var_units"] = var_units
-    if valid_time is not None:grd.attrs["valid_time"] = valid_time
-    if data_start_columns is not None:grd.attrs["data_start_columns"] = data_start_columns
+    if units is not None       : grd.attrs['units'] = units
+    if model_var is not None   : grd.attrs['model_var'] = model_var
+    if dtime_units is not None : grd.attrs['dtime_units'] = dtime_units
+    if level_type is not None  : grd.attrs['level_type'] = level_type
+    if time_type is not None   : grd.attrs['time_type'] = time_type
+    if time_bounds is not None : grd.attrs['time_bounds'] = time_bounds
+    return 

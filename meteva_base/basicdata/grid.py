@@ -14,8 +14,8 @@ class grid:
         约定坐标顺序为: member, time,ddtime, level, lat,lon
     '''
     def __init__(self,glon, glat, gtime=None, dtime_list=None,level_list=None,member_list = None,
-                        units_attr      = None,#数据单位
-                        model_var_attr  = None,#补充模式/要素信息
+                        units_attr      = '',#数据单位
+                        model_var_attr  = '',#补充模式/要素信息
                         dtime_units_attr= 'hour',# hour/minite
                         level_type_attr = 'isobaric',# isobaric/attitude
                         time_type_attr  = 'UT',#UT/BT
