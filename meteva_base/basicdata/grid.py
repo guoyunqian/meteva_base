@@ -13,7 +13,7 @@ class grid:
         定义一个格点的类grid，来存储网格的范围包括（起始经纬度、格距、起止时间，时间间隔，起止时效，时效间隔，层次列表，数据成员）
         约定坐标顺序为: member, time,ddtime, level, lat,lon
     '''
-    def __init__(self,glon, glat, gtime=None, dtime_list=None,level_list=None,member_list = None,
+    def __init__(self,glon, glat, gtime=None, dtime_list=None, level_list=None, member_list = None,
                         units_attr      = '',#数据单位
                         model_var_attr  = '',#补充模式/要素信息
                         dtime_units_attr= 'hour',# hour/minite
@@ -59,7 +59,7 @@ class grid:
             self.etime = np.datetime64('2020-01-01T00:00:00.000000')
             self.dtime_int = 1
             self.dtime_type = "h"
-            self.times = pd.date_range(self.stime, self.etime, freq=str(self.dtime_int)+self.dtime_type ).to_pydatetime()
+            self.times = pd.date_range(self.stime, self.etime, freq=str(self.dtime_int)+self.dtime_type ).to_pydatetime()#[datetime]
         else:
             try:
                 _ = len(gtime)
@@ -75,8 +75,7 @@ class grid:
                 if isinstance(gtime[0], datetime.datetime):
                     self.times = gtime
                 else:
-                    self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
-                    # self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]
+                    self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]#[datetime]
         # except Exception as err:
             # print('gtime ERROR: ',err)
         ############################################################################
