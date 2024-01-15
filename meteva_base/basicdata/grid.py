@@ -76,6 +76,7 @@ class grid:
                     self.times = gtime
                 else:
                     self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]#[datetime]
+        self.stime_str = self.times[0].strftime("%y%m%d%H%M")
         # except Exception as err:
             # print('gtime ERROR: ',err)
         ############################################################################
