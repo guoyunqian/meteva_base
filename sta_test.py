@@ -28,14 +28,14 @@ file_path='a.h5'
 # df=pd.read_hdf(file_path)
 # meb.write_stadata_to_hdf(df)
 
-# data=meb.read_stadata_from_hdf(file_path)
-# print(data.attrs)
+data=meb.read_stadata_from_hdf(file_path)
+print(data.attrs)
 # # df.attrs['units']='m/s'
 
 
-a=pd.read_hdf('a.h5')
+# a=pd.read_hdf('a.h5')
 
-print(a.attrs)
+# print(a.attrs)
 # print(df.attrs)
 
 # sta=sta_data(df)

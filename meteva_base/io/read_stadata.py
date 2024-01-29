@@ -2042,12 +2042,30 @@ def read_stadata_from_hdf(filename):
     
     sta0=pd.read_hdf(filename)
     with h5py.File(filename, 'a') as file:
-        units=file.attrs['units']
-        model=file.attrs['model']
-        level_type=file.attrs['level_type']
-        dtime_units=file.attrs['dtime_units']
-        time_bounds=file.attrs['time_bounds']
-        time_type=file.attrs['time_type']
+        if 'units' in file.attrs:
+            units=file.attrs['units']
+        else:
+            units=''
+        if 'model' in file.attrs:
+            model=file.attrs['model']
+        else:
+            model=''
+        if 'level_type' in file.attrs:
+            level_type=file.attrs['level_type']
+        else:
+            level_type=''
+        if 'dtime_units' in file.attrs:
+            dtime_units=file.attrs['dtime_units']
+        else:
+            dtime_units=''
+        if 'time_bound' in file.attrs:
+            time_bounds=file.attrs['time_bounds']
+        else:
+            time_bounds=''
+        if 'time_type' in file.attrs:
+            time_type=file.attrs['time_type']
+        else:
+            time_type=''
     sta0.attrs['units']=units
     sta0.attrs['model']=model
     sta0.attrs['level_type']=level_type
