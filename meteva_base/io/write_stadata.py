@@ -7,6 +7,7 @@ import datetime
 import meteva_base
 import json
 import gzip
+import h5py
 
 def write_stadata_to_micaps3(sta0,save_path = "a.txt",creat_dir = False, type = -1,effectiveNum = 4,show = False,title = None):
     """
@@ -320,7 +321,48 @@ def write_stadata_to_micaps2(sta_speed,sta_angle,save_path = "a.txt",creat_dir =
         print(exstr)
         return False
 
+def write_stadata_to_hdf(sta0, save_path='a.h5', creat_dir = False):
+    
+    try:
 
+        dir = os.path.split(os.path.abspath(save_path))[0]
+        if not os.path.isdir(dir):
+            if not creat_dir:
+                print("文件夹：" + dir + "不存在")
+                return False
+            else:
+                meteva_base.tool.path_tools.creat_path(save_path)
+        
+        sta=copy.deepcopy(sta0)
+        if 'units' not in sta.attrs:
+            sta.attrs['units']=''
+        if 'model' not in sta.attrs:
+            sta.attrs['model']=''
+        if 'dtime_units' not in sta.attrs:
+            sta.attrs['dtime_units']=''
+        if 'level_type' not in sta.attrs:
+            sta.attrs['level_type']=''
+        if 'time_type' not in sta.attrs:
+            sta.attrs['time_type']=''
+        if 'time_bounds' not in sta.attrs:
+            sta.attrs['time_bounds']=''
+        
+        sta.to_hdf(save_path,key='data')
+        
+        with h5py.File(save_path, 'a') as file:
+            file.attrs['units']=sta.attrs['units']
+            file.attrs['model']=sta.attrs['model']
+            file.attrs['dtime_units']=sta.attrs['dtime_units']
+            file.attrs['level_type']=sta.attrs['level_type']
+            file.attrs['time_type']=sta.attrs['time_type']
+            file.attrs['time_bounds']=sta.attrs['time_bounds']
+        
+        print(sta.attrs)
+        
+    except:
+        exstr = traceback.format_exc()
+        print(exstr)
+        return False
 
 if __name__ == "__main__":
     path = r"D:\book\test_data\charpter11\ob_with_noisy\22010102.000"

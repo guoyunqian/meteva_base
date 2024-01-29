@@ -119,14 +119,31 @@ def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime
                               dims=['member', 'level', 'time', 'dtime', 'lat', 'lon'])
             da.attrs["dtime_units"] = dtime_units
             da.name = "data0"
+            
             meteva_base.reset(da)
             if grid is None:
+                meteva_base.basicdata.set_griddata_attrs(da, 
+                                                         units = 'default', 
+                                                         model_var = 'default', 
+                                                         dtime_units ='default',
+                                                         level_type='default', 
+                                                         time_type='default', 
+                                                         time_bounds='default'
+                                                         )
                 if show:
                     print("success read from " + filename)
                 return da
             else:
+                meteva_base.basicdata.set_griddata_attrs(da, 
+                                                         units = grid.units, 
+                                                         model_var = grid.model_var, 
+                                                         dtime_units =grid.dtime_units,
+                                                         level_type=grid.level_type , 
+                                                         time_type=grid.time_type, 
+                                                         time_bounds=grid.time_bounds
+                                                         )
                 #如果传入函数有grid信息，就需要进行一次双线性插值，按照grid信息进行提取网格信息。
-                da1 = meteva_base.interp_gg_linear(da, grid,outer_value=outer_value)
+                da1 = meteva_base.interp_gg_linear(da, grid, outer_value=outer_value)
                 if show:
                     print("success read from " + filename)
                 return da1
@@ -443,12 +460,59 @@ def read_griddata_from_nc(filename,grid = None,
             meteva_base.set_griddata_coords(da1,member_list=[data_name])
 
         da1.attrs["dtime_units"] = dtime_units
-        if grid is None:
+        print(da1.attrs)
+        if grid is None: #func
+            if da1.attrs.get('units') is None:
+                units='default'
+            else:
+                units=da1.attrs.get('units')
+                
+            if da1.attrs.get('model_var') is None:
+                model_var='default'
+            else:
+                model_var=da1.attrs.get('model_var')
+            
+            if da1.attrs.get('dtime_units') is None:
+                dtime_units='hour'
+            else:
+                dtime_unitss=da1.attrs.get('dtime_units')
+                
+            if da1.attrs.get('level_type') is None:
+                level_type='default'
+            else:
+                level_type=da1.attrs.get('level_type')
+                
+            if da1.attrs.get('time_type') is None:
+                time_type='default'
+            else:
+                time_type=da1.attrs.get('time_type')
+                
+            if da1.attrs.get('time_bounds') is None:
+                time_bounds='default'
+            else:
+                time_bounds=da1.attrs.get('time_bounds')
             #da1.name = "data0"
             if show:
                 print("success read from " + filename)
+            
+            meteva_base.basicdata.set_griddata_attrs(da1, 
+                                                     units = units, 
+                                                     model_var = model_var, 
+                                                     dtime_units =dtime_units,
+                                                     level_type=level_type , 
+                                                     time_type=time_type, 
+                                                     time_bounds=time_bounds
+                                                 )
             return da1
         else:
+            meteva_base.basicdata.set_griddata_attrs(da1, 
+                                                     units = grid.units, 
+                                                     model_var = grid.model_var, 
+                                                     dtime_units =grid.dtime_units,
+                                                     level_type=grid.level_type , 
+                                                     time_type=grid.time_type, 
+                                                     time_bounds=grid.time_bounds
+                                                     )
             # 如果传入函数有grid信息，就需要进行一次双线性插值，按照grid信息进行提取网格信息。
             da2 = meteva_base.interp_gg_linear(da1, grid,outer_value=outer_value)
             #da2.name = "data0"

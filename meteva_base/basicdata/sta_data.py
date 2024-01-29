@@ -5,9 +5,17 @@ import meteva_base
 
 
 def sta_data(df,columns = None,
-             dtime_units="hour", data_source="", level_type="",
-             var_name="", var_cn_name="",
-             var_units="", valid_time=0, data_start_columns=6,reset_ids = True):
+             # dtime_units="hour", data_source="", level_type="",
+             # var_name="", var_cn_name="",
+             # var_units="", valid_time=0, data_start_columns=6,
+             reset_ids = True,
+             units_attr      = '',#数据单位
+             model_var_attr  = '',#补充模式/要素信息
+             dtime_units_attr= 'hour',# hour/minite
+             level_type_attr = 'isobaric',# isobaric/attitude
+             time_type_attr  = 'UT',#UT/BT
+             time_bounds_attr= [0,0],#数据起止时间
+             ):
     '''
     sta_data() 对数据进行格式化成为固定格式
     :param df: dataframe的站点数据
@@ -53,25 +61,31 @@ def sta_data(df,columns = None,
         #    sta.iloc[:,i] = (sta.values[:,i]).astype(np.float32)
         pass
 
-    set_stadata_attrs(sta,dtime_units = dtime_units,data_source = data_source,level_type = level_type,
-                      var_name = var_name,var_cn_name = var_cn_name,var_units = var_units,valid_time = valid_time,
-                      data_start_columns=data_start_columns)
+    set_stadata_attrs(sta,units_attr = units_attr,model_var_attr = model_var_attr,dtime_units_attr = dtime_units_attr,
+                      level_type_attr = level_type_attr,time_type_attr = time_type_attr,time_bounds_attr = time_bounds_attr,)
 
     return sta
 
-def set_stadata_attrs(sta, dtime_units = None,data_source = None,level_type =None,
-             var_name = None,var_cn_name = None,
-             var_units = None,valid_time = None,data_start_columns = None):
+def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_attr =None,
+             level_type_attr = None,time_type_attr = None,
+             time_bounds_attr = None):
 
     if sta.attrs is None: sta.attrs = {}
-    if dtime_units is not None:sta.attrs["dtime_units"] = dtime_units
-    if data_source is not None:sta.attrs["data_source"] = data_source
-    if level_type is not None: sta.attrs["data_type"] = level_type
-    if var_name is not None: sta.attrs["var_name"] = var_name
-    if var_cn_name is not None:sta.attrs["var_cn_name"] = var_cn_name
-    if var_units is not None:sta.attrs["var_units"] = var_units
-    if valid_time is not None:sta.attrs["valid_time"] = valid_time
-    if data_start_columns is not None:sta.attrs["data_start_columns"] = data_start_columns
+    # if dtime_units is not None:sta.attrs["dtime_units"] = dtime_units
+    # if data_source is not None:sta.attrs["data_source"] = data_source
+    # if level_type is not None: sta.attrs["data_type"] = level_type
+    # if var_name is not None: sta.attrs["var_name"] = var_name
+    # if var_cn_name is not None:sta.attrs["var_cn_name"] = var_cn_name
+    # if var_units is not None:sta.attrs["var_units"] = var_units
+    # if valid_time is not None:sta.attrs["valid_time"] = valid_time
+    # if data_start_columns is not None:sta.attrs["data_start_columns"] = data_start_columns
+    
+    if units_attr is not None:sta.attrs["units"] = units_attr
+    if model_var_attr is not None:sta.attrs["model_var"] = model_var_attr
+    if dtime_units_attr is not None: sta.attrs["dtime_units_attr"] =dtime_units_attr
+    if level_type_attr is not None: sta.attrs["level_type_attr"] = level_type_attr
+    if time_type_attr is not None:sta.attrs["time_type_attr"] = time_type_attr
+    if time_bounds_attr is not None:sta.attrs["time_bounds_attr"] = time_bounds_attr
 
 
 def get_undim_data_names(sta):

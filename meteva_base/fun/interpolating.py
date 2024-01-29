@@ -558,7 +558,7 @@ def interp_gg_linear(grd, grid,used_coords = "xy",outer_value = None):
             grid_new0 = meteva_base.get_inner_grid(grid,grid0)
             grid_new = meteva_base.grid(grid_new0.glon, grid_new0.glat, grid0.gtime, grid0.dtimes, grid0.levels, grid0.members)
         else:
-            grid_new = meteva_base.grid(grid.glon, grid.glat, grid0.gtime, grid0.dtimes, grid0.levels, grid0.members)
+            grid_new = meteva_base.grid(grid.glon, grid.glat, grid0.times, grid0.dtimes, grid0.levels, grid0.members)
         grd_new = meteva_base.grid_data(grid_new)
         for i in range(len(levels)):
             for j in range(len(times)):

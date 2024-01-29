@@ -17,7 +17,7 @@ from io import StringIO
 from .CMADaasAccess import CMADaasAccess
 from .httpclient import get_http_result_cimiss
 import json
-
+import h5py
 
 def read_station(filename,keep_alt = False,show = False):
     '''
@@ -2027,3 +2027,46 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_u
             exstr = traceback.format_exc()
             print(exstr)
         return None
+
+
+def read_stadata_from_hdf(filename):
+    if not os.path.exists(filename):
+        print(filename+"文件不存在")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    
+    sta0=pd.read_hdf(filename)
+    with h5py.File(filename, 'a') as file:
+        units=file.attrs['units']
+        model=file.attrs['model']
+        level_type=file.attrs['level_type']
+        dtime_units=file.attrs['dtime_units']
+        time_bounds=file.attrs['time_bounds']
+        time_type=file.attrs['time_type']
+    sta0.attrs['units']=units
+    sta0.attrs['model']=model
+    sta0.attrs['level_type']=level_type
+    sta0.attrs['dtime_units']=dtime_units
+    sta0.attrs['time_bounds']=time_bounds
+    sta0.attrs['time_type']=time_type
+        
+
+    return sta0
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
