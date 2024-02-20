@@ -1,5 +1,6 @@
 #!/usr/bin/python3.6
 # -*- coding:UTF-8 -*-
+from meteva_base.basicdata.sta_data import *
 import numpy as np
 import os
 import pandas as pd
@@ -18,6 +19,7 @@ from .CMADaasAccess import CMADaasAccess
 from .httpclient import get_http_result_cimiss
 import json
 import h5py
+
 
 def read_station(filename,keep_alt = False,show = False):
     '''
@@ -2028,7 +2030,6 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_u
             print(exstr)
         return None
 
-
 def read_stadata_from_hdf(filename):
     if not os.path.exists(filename):
         print(filename+"文件不存在")
@@ -2046,36 +2047,86 @@ def read_stadata_from_hdf(filename):
             units=file.attrs['units']
         else:
             units=''
+            
         if 'model' in file.attrs:
             model=file.attrs['model']
         else:
             model=''
+            
         if 'level_type' in file.attrs:
             level_type=file.attrs['level_type']
         else:
-            level_type=''
+            level_type='isobaric'
+            
         if 'dtime_units' in file.attrs:
             dtime_units=file.attrs['dtime_units']
         else:
-            dtime_units=''
+            dtime_units='hour'
+            
         if 'time_bound' in file.attrs:
             time_bounds=file.attrs['time_bounds']
         else:
-            time_bounds=''
+            time_bounds=[0,0]
+            
         if 'time_type' in file.attrs:
             time_type=file.attrs['time_type']
         else:
-            time_type=''
-    sta0.attrs['units']=units
-    sta0.attrs['model']=model
-    sta0.attrs['level_type']=level_type
-    sta0.attrs['dtime_units']=dtime_units
-    sta0.attrs['time_bounds']=time_bounds
-    sta0.attrs['time_type']=time_type
+            time_type='UT'
+    set_stadata_attrs(sta0,units_attr = units,
+                      model_var_attr = model,
+                      dtime_units_attr = dtime_units,
+                      level_type_attr = level_type
+                      ,time_type_attr = time_type,
+                      time_bounds_attr = time_bounds)
         
-
     return sta0
 
+def read_stadata_from_csv(filename):
+    if not os.path.exists(filename):
+        print(filename+"文件不存在")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    
+    sta=pd.read_csv(filename)
+    sta0=copy.deepcopy(sta)
+    del sta0['attrs']
+    del sta0['value']
+    sta0=sta0.head(-6)
+    info=sta.tail(6)[['attrs','values']]
+
+    attr=list(info['attrs'])
+    value=list(info['value'])
+    attrs_dict = dict(zip(attr, value))
+    # for attr in info:
+        
+    
+    # set_stadata_attrs(sta0,units_attr = units,
+    #                   model_var_attr = model,
+    #                   dtime_units_attr = dtime_units,
+    #                   level_type_attr = level_type,
+    #                   time_type_attr = time_type,
+    #                   time_bounds_attr = time_bounds)
+    
+    return(sta0)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     

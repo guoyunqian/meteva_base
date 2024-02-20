@@ -8,6 +8,7 @@ import meteva_base
 import json
 import gzip
 import h5py
+from meteva_base.basicdata.sta_data import *
 
 def write_stadata_to_micaps3(sta0,save_path = "a.txt",creat_dir = False, type = -1,effectiveNum = 4,show = False,title = None):
     """
@@ -324,7 +325,7 @@ def write_stadata_to_micaps2(sta_speed,sta_angle,save_path = "a.txt",creat_dir =
 def write_stadata_to_hdf(sta0, save_path='a.h5', creat_dir = False):
     
     try:
-
+        
         dir = os.path.split(os.path.abspath(save_path))[0]
         if not os.path.isdir(dir):
             if not creat_dir:
@@ -356,13 +357,75 @@ def write_stadata_to_hdf(sta0, save_path='a.h5', creat_dir = False):
             file.attrs['level_type']=sta.attrs['level_type']
             file.attrs['time_type']=sta.attrs['time_type']
             file.attrs['time_bounds']=sta.attrs['time_bounds']
-        
-        print(sta.attrs)
-        
+                
     except:
         exstr = traceback.format_exc()
         print(exstr)
         return False
+
+def write_stadata_to_csv(sta0, save_path='a.csv', creat_dir = False):
+    
+    try:
+        dir = os.path.split(os.path.abspath(save_path))[0]
+        if not os.path.isdir(dir):
+            if not creat_dir:
+                print("文件夹：" + dir + "不存在")
+                return False
+            else:
+                meteva_base.tool.path_tools.creat_path(save_path)
+        
+        sta=copy.deepcopy(sta0)
+        if 'units' in sta.attrs:
+            units=sta.attrs['units']
+        else:
+            units=''
+            
+        if 'model' in sta.attrs:
+            model=sta.attrs['model']
+        else:
+            model=''
+            
+        if 'dtime_units' in sta.attrs:
+            dtime_units=sta.attrs['dtime_units']
+        else:
+            dtime_units='hour'
+            
+        if 'level_type' in sta.attrs:
+            level_type=sta.attrs['level_type']
+        else:
+            level_type='isobaric'
+            
+        if 'time_type' in sta.attrs:
+            time_type=sta.attrs['time_type']
+        else:
+            time_type='UT'
+            
+        if 'time_bounds' in sta.attrs:
+            time_bounds=sta.attrs['time_bounds']
+        else:
+            time_bounds=[0,0]
+        
+        
+        set_stadata_attrs(sta,units_attr = units,
+                          model_var_attr = model,
+                          dtime_units_attr = dtime_units,
+                          level_type_attr = level_type
+                          ,time_type_attr = time_type,
+                          time_bounds_attr = time_bounds)
+        attrs_list=[]
+        for key,value in sta.attrs.items():
+            attrs_list.append([key,value])
+        
+        attrs_list=pd.DataFrame(attrs_list,columns=['attrs','value'])
+        sta=pd.concat([sta,attrs_list])
+        sta.to_csv(save_path,index=False)
+        
+
+    except:
+        exstr = traceback.format_exc()
+        print(exstr)
+        return False
+    
 
 if __name__ == "__main__":
     path = r"D:\book\test_data\charpter11\ob_with_noisy\22010102.000"
