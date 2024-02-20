@@ -2104,7 +2104,7 @@ def read_stadata_from_csv(filename):
         del sta0['values']
         sta0=sta0.head(-6)
         set_stadata_attrs(sta0,units_attr = attrs_dict['units'],
-                          model_var_attr = attrs_dict['model_var'],
+                          model_var_attr = attrs_dict['model'],
                           dtime_units_attr = attrs_dict['dtime_units'],
                           level_type_attr = attrs_dict['level_type'],
                           time_type_attr = attrs_dict['time_type'],
