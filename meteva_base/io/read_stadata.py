@@ -2094,25 +2094,30 @@ def read_stadata_from_csv(filename):
     
     sta=pd.read_csv(filename)
     sta0=copy.deepcopy(sta)
-    del sta0['attrs']
-    del sta0['value']
-    sta0=sta0.head(-6)
-    info=sta.tail(6)[['attrs','values']]
-
-    attr=list(info['attrs'])
-    value=list(info['value'])
-    attrs_dict = dict(zip(attr, value))
-    # for attr in info:
-        
     
-    # set_stadata_attrs(sta0,units_attr = units,
-    #                   model_var_attr = model,
-    #                   dtime_units_attr = dtime_units,
-    #                   level_type_attr = level_type,
-    #                   time_type_attr = time_type,
-    #                   time_bounds_attr = time_bounds)
+    try:
+        info=sta.tail(6)[['attrs','values']]
+        attr=list(info['attrs'])
+        value=list(info['values'])
+        attrs_dict = dict(zip(attr, value))
+        del sta0['attrs']
+        del sta0['values']
+        sta0=sta0.head(-6)
+        set_stadata_attrs(sta0,units_attr = attrs_dict['units'],
+                          model_var_attr = attrs_dict['model_var'],
+                          dtime_units_attr = attrs_dict['dtime_units'],
+                          level_type_attr = attrs_dict['level_type'],
+                          time_type_attr = attrs_dict['time_type'],
+                          time_bounds_attr = attrs_dict['time_bounds'])
+    except:
+        set_stadata_attrs(sta0,units_attr = '',
+                          model_var_attr = '',
+                          dtime_units_attr = 'hour',
+                          level_type_attr = 'isobaric',
+                          time_type_attr = 'UT',
+                          time_bounds_attr = [0,0])
     
-    return(sta0)
+    return sta0
     
     
     

@@ -322,7 +322,7 @@ def write_stadata_to_micaps2(sta_speed,sta_angle,save_path = "a.txt",creat_dir =
         print(exstr)
         return False
 
-def write_stadata_to_hdf(sta0, save_path='a.h5', creat_dir = False):
+def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
     
     try:
         
@@ -363,7 +363,7 @@ def write_stadata_to_hdf(sta0, save_path='a.h5', creat_dir = False):
         print(exstr)
         return False
 
-def write_stadata_to_csv(sta0, save_path='a.csv', creat_dir = False):
+def write_stadata_to_csv(sta0, save_path, creat_dir = False):
     
     try:
         dir = os.path.split(os.path.abspath(save_path))[0]
@@ -416,7 +416,7 @@ def write_stadata_to_csv(sta0, save_path='a.csv', creat_dir = False):
         for key,value in sta.attrs.items():
             attrs_list.append([key,value])
         
-        attrs_list=pd.DataFrame(attrs_list,columns=['attrs','value'])
+        attrs_list=pd.DataFrame(attrs_list,columns=['attrs','values'])
         sta=pd.concat([sta,attrs_list])
         sta.to_csv(save_path,index=False)
         

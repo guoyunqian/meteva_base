@@ -81,11 +81,11 @@ def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_a
     # if data_start_columns is not None:sta.attrs["data_start_columns"] = data_start_columns
     
     if units_attr is not None:sta.attrs["units"] = units_attr
-    if model_var_attr is not None:sta.attrs["model_var"] = model_var_attr
-    if dtime_units_attr is not None: sta.attrs["dtime_units_attr"] =dtime_units_attr
-    if level_type_attr is not None: sta.attrs["level_type_attr"] = level_type_attr
-    if time_type_attr is not None:sta.attrs["time_type_attr"] = time_type_attr
-    if time_bounds_attr is not None:sta.attrs["time_bounds_attr"] = time_bounds_attr
+    if model_var_attr is not None:sta.attrs["model"] = model_var_attr
+    if dtime_units_attr is not None: sta.attrs["dtime_units"] =dtime_units_attr
+    if level_type_attr is not None: sta.attrs["level_type"] = level_type_attr
+    if time_type_attr is not None:sta.attrs["time_type"] = time_type_attr
+    if time_bounds_attr is not None:sta.attrs["time_bounds"] = time_bounds_attr
 
 
 def get_undim_data_names(sta):
