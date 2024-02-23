@@ -2092,30 +2092,38 @@ def read_stadata_from_csv(filename):
         print(filename+"是文件夹而不是文件")
         return None
     
-    sta=pd.read_csv(filename)
-    sta0=copy.deepcopy(sta)
     
-    try:
-        info=sta.tail(6)[['attrs','values']]
-        attr=list(info['attrs'])
-        value=list(info['values'])
-        attrs_dict = dict(zip(attr, value))
-        del sta0['attrs']
-        del sta0['values']
-        sta0=sta0.head(-6)
-        set_stadata_attrs(sta0,units_attr = attrs_dict['units'],
-                          model_var_attr = attrs_dict['model'],
-                          dtime_units_attr = attrs_dict['dtime_units'],
-                          level_type_attr = attrs_dict['level_type'],
-                          time_type_attr = attrs_dict['time_type'],
-                          time_bounds_attr = attrs_dict['time_bounds'])
-    except:
-        set_stadata_attrs(sta0,units_attr = '',
-                          model_var_attr = '',
-                          dtime_units_attr = 'hour',
-                          level_type_attr = 'isobaric',
-                          time_type_attr = 'UT',
-                          time_bounds_attr = [0,0])
+    with open(filename,'r+') as f:
+        content=f.readlines()
+
+        if content[0]=='attrs,values'+'\n':
+            sta0=pd.read_csv(filename,skiprows=7)
+            infos=content[1:7]
+            attrs=[]
+            values=[]
+            for info in infos:
+                info=info.replace('\n','')
+                info=info.replace('"','')
+                attr=info.split(',')[0]
+                attrs.append(attr)
+                value=info.split(',',1)[1]
+                values.append(value)
+                print(attr,value)
+            attrs_dict = dict(zip(attrs, values))
+            set_stadata_attrs(sta0,units_attr = attrs_dict['units'],
+                              model_var_attr = attrs_dict['model'],
+                              dtime_units_attr = attrs_dict['dtime_units'],
+                              level_type_attr = attrs_dict['level_type'],
+                              time_type_attr = attrs_dict['time_type'],
+                              time_bounds_attr =attrs_dict['time_bounds'])
+        else:
+            sta0=pd.read_csv(filename)
+            set_stadata_attrs(sta0,units_attr = '',
+                              model_var_attr = '',
+                              dtime_units_attr = 'hour',
+                              level_type_attr = 'isobaric',
+                              time_type_attr = 'UT',
+                              time_bounds_attr = [0,0])
     
     return sta0
     

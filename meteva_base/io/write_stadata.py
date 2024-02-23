@@ -8,6 +8,7 @@ import meteva_base
 import json
 import gzip
 import h5py
+import csv
 from meteva_base.basicdata.sta_data import *
 
 def write_stadata_to_micaps3(sta0,save_path = "a.txt",creat_dir = False, type = -1,effectiveNum = 4,show = False,title = None):
@@ -324,8 +325,7 @@ def write_stadata_to_micaps2(sta_speed,sta_angle,save_path = "a.txt",creat_dir =
 
 def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
     
-    try:
-        
+    try:  
         dir = os.path.split(os.path.abspath(save_path))[0]
         if not os.path.isdir(dir):
             if not creat_dir:
@@ -333,6 +333,8 @@ def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
                 return False
             else:
                 meteva_base.tool.path_tools.creat_path(save_path)
+                
+                
         
         sta=copy.deepcopy(sta0)
         if 'units' in sta.attrs:
@@ -436,13 +438,21 @@ def write_stadata_to_csv(sta0, save_path, creat_dir = False):
                           level_type_attr = level_type
                           ,time_type_attr = time_type,
                           time_bounds_attr = time_bounds)
-        attrs_list=[]
-        for key,value in sta.attrs.items():
-            attrs_list.append([key,value])
-        
-        attrs_list=pd.DataFrame(attrs_list,columns=['attrs','values'])
-        sta=pd.concat([sta,attrs_list])
         sta.to_csv(save_path,index=False)
+        
+        attrs_list=''
+        
+        with open(save_path,'r+') as f:
+            content=f.read()
+            f.seek(0,0)       
+            for key,value in sta.attrs.items():
+                attrs_list+=(str(key)+','+'"{value}"'.format(value=value)+'\n')
+            f.write('attrs,values'+'\n'+str(attrs_list)+content)
+            
+        # attrs_list=pd.DataFrame(attrs_list,columns=['attrs','values'])
+        # sta=pd.concat([sta,attrs_list])
+
+        
         
 
     except:
