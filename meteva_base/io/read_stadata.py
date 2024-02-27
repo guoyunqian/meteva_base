@@ -268,7 +268,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
             print(filename+"文件格式不能识别。可能原因：文件未按micaps3格式存储")
             return None
 
-def read_stadata_from_csv(filename, columns, member_list,skiprows=0,level = None,time = None,dtime = None, drop_same_id=False,
+def read_stadata_from_csv_txt(filename, columns, member_list,skiprows=0,level = None,time = None,dtime = None, drop_same_id=False,
                           sep = "\s+",dtime_units = "hour",show = False):
 
     """
