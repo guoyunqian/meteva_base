@@ -337,35 +337,7 @@ def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
                 
         
         sta=copy.deepcopy(sta0)
-        if 'units' in sta.attrs:
-            units=sta.attrs['units']
-        else:
-            units=''
-            
-        if 'model' in sta.attrs:
-            model=sta.attrs['model']
-        else:
-            model=''
-            
-        if 'dtime_units' in sta.attrs:
-            dtime_units=sta.attrs['dtime_units']
-        else:
-            dtime_units='hour'
-            
-        if 'level_type' in sta.attrs:
-            level_type=sta.attrs['level_type']
-        else:
-            level_type='isobaric'
-            
-        if 'time_type' in sta.attrs:
-            time_type=sta.attrs['time_type']
-        else:
-            time_type='UT'
-            
-        if 'time_bounds' in sta.attrs:
-            time_bounds=sta.attrs['time_bounds']
-        else:
-            time_bounds=[0,0]
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
         set_stadata_attrs(sta,units_attr = units,
                           model_var_attr = model,
                           dtime_units_attr = dtime_units,
@@ -401,37 +373,7 @@ def write_stadata_to_csv(sta0, save_path, creat_dir = False):
                 meteva_base.tool.path_tools.creat_path(save_path)
         
         sta=copy.deepcopy(sta0)
-        if 'units' in sta.attrs:
-            units=sta.attrs['units']
-        else:
-            units=''
-            
-        if 'model' in sta.attrs:
-            model=sta.attrs['model']
-        else:
-            model=''
-            
-        if 'dtime_units' in sta.attrs:
-            dtime_units=sta.attrs['dtime_units']
-        else:
-            dtime_units='hour'
-            
-        if 'level_type' in sta.attrs:
-            level_type=sta.attrs['level_type']
-        else:
-            level_type='isobaric'
-            
-        if 'time_type' in sta.attrs:
-            time_type=sta.attrs['time_type']
-        else:
-            time_type='UT'
-            
-        if 'time_bounds' in sta.attrs:
-            time_bounds=sta.attrs['time_bounds']
-        else:
-            time_bounds=[0,0]
-        
-        
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
         set_stadata_attrs(sta,units_attr = units,
                           model_var_attr = model,
                           dtime_units_attr = dtime_units,

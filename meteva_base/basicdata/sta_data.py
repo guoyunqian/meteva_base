@@ -220,3 +220,36 @@ def reset_id(sta):
             sta['id'] = int_id
     return
 
+def get_attrs(sta):
+    if 'units' in sta.attrs:
+        units=sta.attrs['units']
+    else:
+        units=''
+        
+    if 'model' in sta.attrs:
+        model=sta.attrs['model']
+    else:
+        model=''
+        
+    if 'dtime_units' in sta.attrs:
+        dtime_units=sta.attrs['dtime_units']
+    else:
+        dtime_units='hour'
+        
+    if 'level_type' in sta.attrs:
+        level_type=sta.attrs['level_type']
+    else:
+        level_type='isobaric'
+        
+    if 'time_type' in sta.attrs:
+        time_type=sta.attrs['time_type']
+    else:
+        time_type='UT'
+        
+    if 'time_bounds' in sta.attrs:
+        time_bounds=sta.attrs['time_bounds']
+    else:
+        time_bounds=[0,0]
+    
+    return units,model,dtime_units,level_type,time_type,time_bounds
+

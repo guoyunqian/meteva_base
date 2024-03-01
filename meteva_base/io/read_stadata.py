@@ -2149,45 +2149,17 @@ def read_stadata_from_hdf(filename):
         print(filename+"是文件夹而不是文件")
         return None
     
-    sta0=pd.read_hdf(filename)
+    sta=pd.read_hdf(filename)
     with h5py.File(filename, 'a') as file:
-        if 'units' in file.attrs:
-            units=file.attrs['units']
-        else:
-            units=''
-            
-        if 'model' in file.attrs:
-            model=file.attrs['model']
-        else:
-            model=''
-            
-        if 'level_type' in file.attrs:
-            level_type=file.attrs['level_type']
-        else:
-            level_type='isobaric'
-            
-        if 'dtime_units' in file.attrs:
-            dtime_units=file.attrs['dtime_units']
-        else:
-            dtime_units='hour'
-            
-        if 'time_bound' in file.attrs:
-            time_bounds=file.attrs['time_bounds']
-        else:
-            time_bounds=[0,0]
-            
-        if 'time_type' in file.attrs:
-            time_type=file.attrs['time_type']
-        else:
-            time_type='UT'
-    set_stadata_attrs(sta0,units_attr = units,
+       units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
+    set_stadata_attrs(sta,units_attr = units,
                       model_var_attr = model,
                       dtime_units_attr = dtime_units,
                       level_type_attr = level_type
                       ,time_type_attr = time_type,
                       time_bounds_attr = time_bounds)
         
-    return sta0
+    return sta
 
 def read_stadata_from_csv(filename):
     if not os.path.exists(filename):
