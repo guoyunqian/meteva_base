@@ -17,6 +17,7 @@ from .CMADaasAccess import CMADaasAccess
 from .httpclient import get_http_result_cimiss
 import json
 import warnings
+from meteva_base.basicdata.grid_data import *
 
 def grid_ragular(slon,dlon,elon,slat,dlat,elat):
     """
@@ -115,39 +116,40 @@ def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime
             if dtime is None:
                 dtime = dts
             #print(levels,times,dts)
-            da = xr.DataArray(dat, coords={'member': [data_name], 'level': [level], 'time': [time], 'dtime': [dtime],
+            da1 = xr.DataArray(dat, coords={'member': [data_name], 'level': [level], 'time': [time], 'dtime': [dtime],
                                            'lat': lat, 'lon': lon},
-                              dims=['member', 'level', 'time', 'dtime', 'lat', 'lon'])
-            da.attrs["dtime_units"] = dtime_units
-            da.name = "data0"
-            
-            meteva_base.reset(da)
-            if grid is None:
-                meteva_base.basicdata.set_griddata_attrs(da, 
-                                                         units = 'default', 
-                                                         model_var = 'default', 
-                                                         dtime_units ='default',
-                                                         level_type='default', 
-                                                         time_type='default', 
-                                                         time_bounds='default'
+                              dims=['member', 'level', 'time', 'dtime', 'lat', 'lon'])           
+            meteva_base.reset(da1)
+            if grid is None: #func
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(da1)
+                meteva_base.basicdata.set_griddata_attrs(da1, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
                                                          )
                 if show:
                     print("success read from " + filename)
-                return da
+                da1.data=np.float32(da1.data)
+                return da1
             else:
-                meteva_base.basicdata.set_griddata_attrs(da, 
+                meteva_base.basicdata.set_griddata_attrs(da1, 
                                                          units = grid.units, 
-                                                         model_var = grid.model_var, 
+                                                         model = grid.model, 
                                                          dtime_units =grid.dtime_units,
                                                          level_type=grid.level_type , 
                                                          time_type=grid.time_type, 
                                                          time_bounds=grid.time_bounds
                                                          )
-                #如果传入函数有grid信息，就需要进行一次双线性插值，按照grid信息进行提取网格信息。
-                da1 = meteva_base.interp_gg_linear(da, grid, outer_value=outer_value)
+                # 如果传入函数有grid信息，就需要进行一次双线性插值，按照grid信息进行提取网格信息。
+                da2 = meteva_base.interp_gg_linear(da1, grid,outer_value=outer_value)
+                #da2.name = "data0"
                 if show:
                     print("success read from " + filename)
-                return da1
+                da1.data=np.float32(da1.data)
+                return da2
         else:
             print("自描述信息中的网格数是：" +str(nlon1) + "*" + str(nlat1) +"="+ str(nlon1 * nlat1))
             print("实际数据大小为："+str(len(strs) - 22))
@@ -460,55 +462,24 @@ def read_griddata_from_nc(filename,grid = None,
         if data_name is not None and len(da1.coords["member"])==1:
             meteva_base.set_griddata_coords(da1,member_list=[data_name])
 
-        da1.attrs["dtime_units"] = dtime_units
-        print(da1.attrs)
         if grid is None: #func
-            if da1.attrs.get('units') is None:
-                units='default'
-            else:
-                units=da1.attrs.get('units')
-                
-            if da1.attrs.get('model_var') is None:
-                model_var='default'
-            else:
-                model_var=da1.attrs.get('model_var')
-            
-            if da1.attrs.get('dtime_units') is None:
-                dtime_units='hour'
-            else:
-                dtime_unitss=da1.attrs.get('dtime_units')
-                
-            if da1.attrs.get('level_type') is None:
-                level_type='default'
-            else:
-                level_type=da1.attrs.get('level_type')
-                
-            if da1.attrs.get('time_type') is None:
-                time_type='default'
-            else:
-                time_type=da1.attrs.get('time_type')
-                
-            if da1.attrs.get('time_bounds') is None:
-                time_bounds='default'
-            else:
-                time_bounds=da1.attrs.get('time_bounds')
-            #da1.name = "data0"
-            if show:
-                print("success read from " + filename)
-            
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(da1)
             meteva_base.basicdata.set_griddata_attrs(da1, 
                                                      units = units, 
-                                                     model_var = model_var, 
-                                                     dtime_units =dtime_units,
-                                                     level_type=level_type , 
-                                                     time_type=time_type, 
-                                                     time_bounds=time_bounds
-                                                 )
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+            if show:
+                print("success read from " + filename)
+            da1.data=np.float32(da1.data)
             return da1
         else:
             meteva_base.basicdata.set_griddata_attrs(da1, 
                                                      units = grid.units, 
-                                                     model_var = grid.model_var, 
+                                                     model = grid.model, 
                                                      dtime_units =grid.dtime_units,
                                                      level_type=grid.level_type , 
                                                      time_type=grid.time_type, 
@@ -519,6 +490,7 @@ def read_griddata_from_nc(filename,grid = None,
             #da2.name = "data0"
             if show:
                 print("success read from " + filename)
+            da2.data=np.float32(da2.data)
             return da2
     except (Exception, BaseException) as e:
         exstr = traceback.format_exc()
@@ -631,18 +603,36 @@ def read_griddata_from_grib(filename,level_type= None,grid = None,
         if data_name is not None and len(da1.coords["member"])==1:
             meteva_base.set_griddata_coords(da1,member_list=[data_name])
 
-        da1.attrs["dtime_units"] = dtime_units
         if grid is None:
             #da1.name = "data0"
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(da1)
+            meteva_base.basicdata.set_griddata_attrs(da1, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
             if show:
                 print("success read from " + filename)
+            da1.data=np.float32(da1.data)
             return da1
         else:
+            meteva_base.basicdata.set_griddata_attrs(da1, 
+                                                     units = grid.units, 
+                                                     model = grid.model, 
+                                                     dtime_units =grid.dtime_units,
+                                                     level_type=grid.level_type , 
+                                                     time_type=grid.time_type, 
+                                                     time_bounds=grid.time_bounds
+                                                     )
             # 如果传入函数有grid信息，就需要进行一次双线性插值，按照grid信息进行提取网格信息。
             da2 = meteva_base.interp_gg_linear(da1, grid,outer_value=outer_value)
             #da2.name = "data0"
             if show:
                 print("success read from " + filename)
+            da2.data=np.float32(da2.data)
             return da2
     except (Exception, BaseException) as e:
         exstr = traceback.format_exc()
@@ -659,9 +649,18 @@ def read_griddata_from_gds_file(filename,grid = None,level = None,time = None,dt
         file = open(filename, 'rb')
         byteArray = file.read()
         grd = decode_griddata_from_gds_byteArray(byteArray,grid,level,time,dtime,data_name)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("success read from " + filename)
-        grd.attrs["dtime_units"] = dtime_units
+        grd.data=np.float32(grd.data)   
         return grd
     except Exception as e:
         print(e)
@@ -694,9 +693,18 @@ def read_griddata_from_gds(filename,grid = None,level = None,time = None,dtime =
                 byteArray = ByteArrayResult.byteArray
 
                 grd = decode_griddata_from_gds_byteArray(byteArray,grid,level,time,dtime,data_name)
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
                 if show:
                     print("success read from " + filename)
-                grd.attrs["dtime_units"] = dtime_units
+                grd.data=np.float32(grd.data)
                 return grd
             else:
                 print(filename + " not exist")
@@ -736,9 +744,18 @@ def read_gridwind_from_gds(filename,grid = None,level = None,time = None,dtime =
             if ByteArrayResult is not None:
                 byteArray = ByteArrayResult.byteArray
                 grd = decode_gridwind_from_gds_byteArray(byteArray,grid,level,time,dtime,data_name)
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
                 if show:
                     print("success read from " + filename)
-                grd.attrs["dtime_units"] = dtime_units
+                grd.data=np.float32(grd.data)
                 return grd
             else:
                 print(filename + " not exist")
@@ -827,12 +844,30 @@ def decode_griddata_from_gds_byteArray(byteArray,grid = None,level = None,time =
             member_list = np.arange(nmem).tolist()
         meteva_base.set_griddata_coords(grd,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=member_list)
 
-    if (grid is None):
+    if grid is None:
         grd.name = "data0"
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds=time_bounds)
+        grd.data=np.float32(grd.data)                                       
         return grd
     else:
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = grid.units, 
+                                                 model = grid.model, 
+                                                 dtime_units =grid.dtime_units,
+                                                 level_type=grid.level_type , 
+                                                 time_type=grid.time_type, 
+                                                 time_bounds=grid.time_bounds
+                                                 )
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
+        da.data=np.float32(da.data)
         return da
 
 
@@ -895,9 +930,29 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
 
             meteva_base.set_griddata_coords(wind,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=["u"+data_name,"v"+data_name])
             if (grid is None):
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(wind)
+                meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
+                wind.data=np.float32(wind.data)
                 return wind
             else:
-                return meteva_base.interp_gg_linear(wind, grid,outer_value=outer_value)
+                meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                         units = grid.units, 
+                                                         model = grid.model, 
+                                                         dtime_units =grid.dtime_units,
+                                                         level_type=grid.level_type , 
+                                                         time_type=grid.time_type, 
+                                                         time_bounds=grid.time_bounds
+                                                         )
+                wind2 = meteva_base.interp_gg_linear(wind, grid,outer_value=outer_value)
+                wind2.data=np.float32(wind2.data)
+                return wind2
     else:
         member_list = []
         for im in range(nmem):
@@ -932,9 +987,29 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
         meteva_base.set_griddata_coords(wind, gtime=[time], dtime_list=[dtime], level_list=[level],
                                         member_list=["u" + data_name, "v" + data_name])
         if (grid is None):
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(wind_en)
+            meteva_base.basicdata.set_griddata_attrs(wind_en, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+            wind_en.data=np.float32(wind_en.data)
             return wind_en
         else:
-            return meteva_base.interp_gg_linear(wind_en, grid,outer_value=outer_value)
+            meteva_base.basicdata.set_griddata_attrs(wind_en2, 
+                                                     units = grid.units, 
+                                                     model = grid.model, 
+                                                     dtime_units =grid.dtime_units,
+                                                     level_type=grid.level_type , 
+                                                     time_type=grid.time_type, 
+                                                     time_bounds=grid.time_bounds
+                                                     )
+            wind_en2 = meteva_base.interp_gg_linear(wind_en, grid,outer_value=outer_value)
+            wind_en2.data=np.float32(wind_en2.data)
+            return wind_en2
 
 
 def read_gridwind_from_gds_file(filename,grid = None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
@@ -945,8 +1020,18 @@ def read_gridwind_from_gds_file(filename,grid = None,level = None,time = None,dt
         file = open(filename, 'rb')
         byteArray = file.read()
         wind = decode_gridwind_from_gds_byteArray(byteArray,grid=grid,level = level,time = time,dtime = dtime,data_name = data_name)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(wind)
+        meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("success read from " + filename)
+        wind.data=np.float32(wind.data)
         return wind
     except:
         if show:
@@ -969,12 +1054,30 @@ def read_gridwind_from_micaps2(filename,grid = None,level = None,time = None,dti
             wind = meteva_base.diag.speed_angle_to_wind(grid_speed,grid_angle)
             meteva_base.reset(wind)
             if grid is None:
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(wind)
+                meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
+                wind.data=wind.float32(da.data)
                 return wind
             else:
+                meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                         units = grid.units, 
+                                                         model = grid.model, 
+                                                         dtime_units =grid.dtime_units,
+                                                         level_type=grid.level_type , 
+                                                         time_type=grid.time_type, 
+                                                         time_bounds=grid.time_bounds
+                                                         )
                 wind1 = meteva_base.interp_gg_linear(wind,grid=grid,level = level,time = time,dtime= dtime,data_name = data_name,outer_value=outer_value)
                 if show:
                     print("success read from " + filename)
-                wind1.attrs["dtime_units"] = dtime_units
+                wind1.data=np.float32(wind1.data)
                 return wind1
         except:
             if show:
@@ -1028,12 +1131,30 @@ def read_gridwind_from_micaps11(filename,grid = None,level = None,time = None,dt
                 meteva_base.set_griddata_coords(wind, gtime=[time], dtime_list=[dtime], level_list=[level],
                                                 member_list=["u" + data_name, "v" + data_name])
                 if grid is None:
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(wind)
+                    meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                             units = units, 
+                                                             model = model, 
+                                                             dtime_units = dtime_units,
+                                                             level_type= level_type , 
+                                                             time_type= time_type, 
+                                                             time_bounds= time_bounds
+                                                             )
+                    wind.data=np.float32(wind.data)
                     return wind
                 else:
+                    meteva_base.basicdata.set_griddata_attrs(wind, 
+                                                             units = grid.units, 
+                                                             model = grid.model, 
+                                                             dtime_units =grid.dtime_units,
+                                                             level_type=grid.level_type , 
+                                                             time_type=grid.time_type, 
+                                                             time_bounds=grid.time_bounds
+                                                             )
                     wind1 = meteva_base.interp_gg_linear(wind, grid,outer_value=outer_value)
                     if show:
                         print("success read from " + filename)
-                    wind1.attrs["dtime_units"] = dtime_units
+                    wind1.data=np.float32(wind1.data)
                     return wind1
             else:
 
@@ -1134,14 +1255,34 @@ def read_AWX_from_gds(filename,grid = None,level = None,time = None,dtime = None
                 grd.attrs["dtime_units"] = dtime_units
                 if (grid is None):
                     grd.name = "data0"
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                    meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                             units = units, 
+                                                             model = model, 
+                                                             dtime_units = dtime_units,
+                                                             level_type= level_type , 
+                                                             time_type= time_type, 
+                                                             time_bounds= time_bounds
+                                                             )
                     if show:
                         print("success read from " + filename)
+                    grd.data=np.float32(grd.data)
                     return grd
                 else:
+                    meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                             units = grid.units, 
+                                                             model = grid.model, 
+                                                             dtime_units =grid.dtime_units,
+                                                             level_type=grid.level_type , 
+                                                             time_type=grid.time_type, 
+                                                             time_bounds=grid.time_bounds
+                                                             )
                     da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
                     da.name = "data0"
+                    
                     if show:
                         print("success read from " + filename)
+                    da.data=np.float32(da.data)
                     return da
             else:
                 print(filename + " not exist")
@@ -1219,10 +1360,29 @@ def decode_griddata_from_AWX_byteArray(byteArray,grid = None,level = None,time =
     meteva_base.set_griddata_coords(grd,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=[data_name])
     if (grid is None):
         grd.name = "data0"
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(da1)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
+        grd.data=np.float32(grd.data)
         return grd
     else:
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = grid.units, 
+                                                 model = grid.model, 
+                                                 dtime_units =grid.dtime_units,
+                                                 level_type=grid.level_type , 
+                                                 time_type=grid.time_type, 
+                                                 time_bounds=grid.time_bounds
+                                                 )
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
+        da.data=np.float32(da.data)
         return da
 
 def read_griddata_from_AWX_file(filename,grid = None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
@@ -1233,9 +1393,18 @@ def read_griddata_from_AWX_file(filename,grid = None,level = None,time = None,dt
         file = open(filename, 'rb')
         byteArray = file.read()
         grd = decode_griddata_from_AWX_byteArray(byteArray,grid,level = level,time = time,dtime = dtime,data_name = data_name)
-        grd.attrs["dtime_units"] = dtime_units
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(da1)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("success read from " + filename)
+        grd.data=np.float32(grd.data)
         return grd
     except:
         if show:
@@ -1257,12 +1426,21 @@ def read_griddata_from_binary(filename,grid = None,level = None,time = None,dtim
         grid0 = meteva_base.grid([head[0],head[1],head[2]],[head[3],head[4],head[5]])
         dat  = np.frombuffer(bytes[24:], dtype='float32')
         grd = meteva_base.grid_data(grid0,dat)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if grid is not None:
             grd = meteva_base.interp_gg_linear(grd,grid1=grid,outer_value=outer_value)
         meteva_base.set_griddata_coords(grd,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=[data_name])
-        grd.attrs["dtime_units"] = dtime_units
         if show:
             print("success read from " + filename)
+        grd.data=np.float32(grd.data)
         return grd
     except:
         if show:
@@ -1363,10 +1541,29 @@ def decode_griddata_from_radar_byteArray(byteArray,grid = None,level = None,time
     meteva_base.set_griddata_coords(grd,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=[data_name])
     if (grid is None):
         grd.name = "data0"
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
+        grd.data=np.float32(grd.data)
         return grd
     else:
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = grid.units, 
+                                                 model = grid.model, 
+                                                 dtime_units =grid.dtime_units,
+                                                 level_type=grid.level_type , 
+                                                 time_type=grid.time_type, 
+                                                 time_bounds=grid.time_bounds
+                                                 )
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
+        da.data=np.float32(da.data)
         return da
 
 def read_griddata_from_radar_latlon_file(filename,grid = None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
@@ -1377,9 +1574,18 @@ def read_griddata_from_radar_latlon_file(filename,grid = None,level = None,time 
         file = open(filename, 'rb')
         byteArray = file.read()
         grd = decode_griddata_from_radar_byteArray(byteArray,grid,level = level,time = time,dtime = dtime,data_name = data_name)
-        grd.attrs["dtime_units"] = dtime_units
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("success read from " + filename)
+        grd.data=np.float32(grd.data)
         return grd
     except:
         if show:
@@ -1399,9 +1605,18 @@ def read_griddata_from_bz2_file(filename,decode_method,grid = None,level = None,
         buf = f.read()
         f.close()
         grd = decode_method(buf,grid = grid,level = level,time = time,dtime = dtime,data_name = data_name)
-        grd.attrs["dtime_units"] = dtime_units
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("successed read griddata from "+ filename)
+        grd.data=np.float32(grd.data)
         return grd
     except:
         if show:
@@ -1437,7 +1652,16 @@ def read_radar_latlon_from_gds(filename,grid = None,level = None,time = None,dti
             if ByteArrayResult is not None:
                 byteArray = ByteArrayResult.byteArray
                 grd = decode_griddata_from_radar_byteArray(byteArray,grid = grid,level = level,time = time,dtime = dtime,data_name = data_name)
-                grd.attrs["dtime_units"] = dtime_units
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
+                grd.data=np.float32(grd.data)
                 return grd
             else:
                 print(filename + " not exist")
@@ -1479,13 +1703,31 @@ def read_griddata_from_rasterData(filename,grid = None,level = None,time = None,
         meteva_base.reset(grd)
         meteva_base.set_griddata_coords(grd, gtime=[time], dtime_list=[dtime], level_list=[level],
                                         member_list=[data_name])
-        grd.attrs["dtime_units"] = dtime_units
         if (grid is None):
             grd.name = "data0"
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+            meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+            grd.data=np.float32(grd.data)
             return grd
         else:
+            meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                     units = grid.units, 
+                                                     model = grid.model, 
+                                                     dtime_units =grid.dtime_units,
+                                                     level_type=grid.level_type , 
+                                                     time_type=grid.time_type, 
+                                                     time_bounds=grid.time_bounds
+                                                     )
             da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
             da.name = "data0"
+            da.data=np.float32(da.data)
             return da
     except:
         if show:
@@ -1544,7 +1786,16 @@ def read_griddata_from_cmadaas(dataCode,element,level_type,level,time,dtime = No
         grd.name = element
         if grid is not None:
             grd = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
-    grd.attrs["dtime_units"] = dtime_units
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+            meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+    grd.data=np.float32(grd.data)
     return grd
 
 
@@ -1589,7 +1840,16 @@ def read_griddata_from_cimiss(dataCode,element,level,time,dtime,grid = None,data
     grd.name = element
     if grid is not None:
         grd = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
-    grd.attrs["dtime_units"] = dtime_units
+    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+    meteva_base.basicdata.set_griddata_attrs(grd, 
+                                             units = units, 
+                                             model = model, 
+                                             dtime_units = dtime_units,
+                                             level_type= level_type , 
+                                             time_type= time_type, 
+                                             time_bounds= time_bounds
+                                             )
+    grd.data=np.float32(grd.data)
     return grd
 
 
@@ -1631,6 +1891,16 @@ def decode_griddata_from_radar_mosaic_v3_byteArray(byteArray, grid=None, level=N
         if grid is not None:
             grd = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         meteva_base.set_griddata_coords(grd, member_list=[data_name])
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
+        grd.data=np.float32(grd.data)
         return grd
     else:
         return None
@@ -1646,9 +1916,18 @@ def read_griddata_from_radar_mosaic_v3_file(filename, grid=None, level=None, tim
         byteArray = file.read()
         grd = decode_griddata_from_radar_mosaic_v3_byteArray(byteArray, grid, level=level, time=time, dtime=dtime,
                                                        data_name=data_name)
-        grd.attrs["dtime_units"] = dtime_units
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
         if show:
             print("success read from " + filename)
+        da.data=np.float32(da.data)
         return grd
     except:
         if show:
@@ -1683,9 +1962,18 @@ def read_griddata_from_radar_mosaic_v3_gds(filename, grid=None, level=None, time
                 byteArray = ByteArrayResult.byteArray
 
                 grd = decode_griddata_from_radar_mosaic_v3_byteArray(byteArray,grid,level,time,dtime,data_name)
-                grd.attrs["dtime_units"] = dtime_units
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
                 if show:
                     print("success read from " + filename)
+                grd.data=np.float32(grd.data)
                 return grd
             else:
                 print(filename + " not exist")
@@ -1813,6 +2101,16 @@ def read_griddata_from_ctl(ctl_path,data_path = None,value_name = None,dtime_dim
                 meteva_base.set_griddata_coords(grd, member_list=[data_name])
             if dtime_start != 0:
                 grd = meteva_base.move_fo_time(grd, -dtime_start)
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+            meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+            grd.data=np.float32(grd.data)
             return grd
 
         else:
@@ -1857,6 +2155,16 @@ def read_griddata_from_ctl(ctl_path,data_path = None,value_name = None,dtime_dim
             grd_one_var.attrs["dtime_units"] = dtime_units
             if dtime_start != 0:
                 grd_one_var = meteva_base.move_fo_time(grd_one_var, -dtime_start)
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd_one_var)
+            meteva_base.basicdata.set_griddata_attrs(grd_one_var, 
+                                                     units = units, 
+                                                     model = model, 
+                                                     dtime_units = dtime_units,
+                                                     level_type= level_type , 
+                                                     time_type= time_type, 
+                                                     time_bounds= time_bounds
+                                                     )
+            grd_one_var.data=np.float32(grd_one_var.data)
             return grd_one_var
     except:
         if show:
@@ -1965,6 +2273,16 @@ def decode_griddata_from_swan_d131_byteArray(byteArray,grid = None,level = None,
         grd.attrs['units'] = 'mm'
     grd.attrs['Conventions'] = "CF-1.6"
     grd.attrs['Origin'] = 'MICAPS Cassandra Server'
+    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+    meteva_base.basicdata.set_griddata_attrs(grd, 
+                                             units = units, 
+                                             model = model, 
+                                             dtime_units = dtime_units,
+                                             level_type= level_type , 
+                                             time_type= time_type, 
+                                             time_bounds= time_bounds
+                                             )
+    grd.data=np.float32(grd.data)
     return grd
 
 
@@ -1988,7 +2306,16 @@ def read_griddata_from_swan_d131(filename,grid = None,level = None,time = None,d
                                                    data_name=data_name,scale_type=scale_type)
         if show:
             print("success read from " + filename)
-        grd.attrs["dtime_units"] = dtime_units
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+        meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                 units = units, 
+                                                 model = model, 
+                                                 dtime_units = dtime_units,
+                                                 level_type= level_type , 
+                                                 time_type= time_type, 
+                                                 time_bounds= time_bounds
+                                                 )
+        grd.data=np.float32(grd.data)
         return grd
     except:
         if show:
@@ -2034,8 +2361,17 @@ def read_griddata_from_ensemble_grads(filename, dtype=np.float32,
     grd_ens.attrs["units"] = unit
     grd_ens.name = 'data0'
     grd_ens1 = grd_ens.transpose('member','level','time','dtime','lat','lon')
-    grd_ens1.attrs["dtime_units"] = dtime_units
-    return(grd_ens1)
+    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd_ens1)
+    meteva_base.basicdata.set_griddata_attrs(grd_ens1, 
+                                             units = units, 
+                                             model = model, 
+                                             dtime_units = dtime_units,
+                                             level_type= level_type , 
+                                             time_type= time_type, 
+                                             time_bounds= time_bounds
+                                             )
+    grd_ens1.data=np.float32(grd_ens1.data)
+    return grd_ens1
 
 
 def jd2ce(JDN):
@@ -2120,6 +2456,16 @@ def read_griddata_from_ensemble_sav(filename, dt=None, unit='mm', var=None,dtime
     grd_ens.name = 'data0'
     grd_ens1 = grd_ens.transpose('member', 'level', 'time', 'dtime', 'lat', 'lon')
     grd_ens1.attrs["dtime_units"] = dtime_units
+    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd_ens1)
+    meteva_base.basicdata.set_griddata_attrs(grd_ens1, 
+                                             units = units, 
+                                             model = model, 
+                                             dtime_units = dtime_units,
+                                             level_type= level_type , 
+                                             time_type= time_type, 
+                                             time_bounds= time_bounds
+                                             )
+    grd_ens1.data=np.float32(grd_ens1.data)
     return grd_ens1
 
 
@@ -2153,7 +2499,16 @@ def read_griddata_from_swan_d131_gds(filename, grid=None, level=None, time=None,
 
                 grd = decode_griddata_from_swan_d131_byteArray(byteArray, grid, level=level, time=time, dtime=dtime,
                                                                data_name=data_name, scale_type=scale_type)
-                grd.attrs["dtime_units"] = dtime_units
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(grd)
+                meteva_base.basicdata.set_griddata_attrs(grd, 
+                                                         units = units, 
+                                                         model = model, 
+                                                         dtime_units = dtime_units,
+                                                         level_type= level_type , 
+                                                         time_type= time_type, 
+                                                         time_bounds= time_bounds
+                                                         )
+                grd.data=np.float32(grd.data)
                 return grd
             else:
                 print(filename + " not exist")

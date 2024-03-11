@@ -2,7 +2,7 @@
 import copy
 import numpy as np
 import meteva_base
-
+import pandas as pd
 
 def sta_data(df,columns = None,
              # dtime_units="hour", data_source="", level_type="",
@@ -220,36 +220,56 @@ def reset_id(sta):
             sta['id'] = int_id
     return
 
-def get_attrs(sta):
+def get_attrs(sta,
+              default_units='',
+              default_model='',
+              default_dtime_units='hour',
+              default_level_type='isobaric',
+              default_time_type='UT',
+              default_time_bounds=[0,0]):
     if 'units' in sta.attrs:
         units=sta.attrs['units']
     else:
-        units=''
+        units=default_units
         
     if 'model' in sta.attrs:
         model=sta.attrs['model']
     else:
-        model=''
+        model=default_model
         
     if 'dtime_units' in sta.attrs:
         dtime_units=sta.attrs['dtime_units']
     else:
-        dtime_units='hour'
+        dtime_units=default_dtime_units
         
     if 'level_type' in sta.attrs:
         level_type=sta.attrs['level_type']
     else:
-        level_type='isobaric'
+        level_type=default_level_type
         
     if 'time_type' in sta.attrs:
         time_type=sta.attrs['time_type']
     else:
-        time_type='UT'
+        time_type=default_time_type
         
     if 'time_bounds' in sta.attrs:
         time_bounds=sta.attrs['time_bounds']
     else:
-        time_bounds=[0,0]
+        time_bounds=default_time_bounds
     
     return units,model,dtime_units,level_type,time_type,time_bounds
 
+def converse_type(sta):
+    sta['time']=pd.to_datetime(sta['time'])
+    sta['level']=sta['level'].astype('float32')
+    sta['dtime']=sta['dtime'].astype('int32')
+    sta['id']=sta['id'].astype('int32')
+    sta['lon']=sta['level'].astype('float32')
+    sta['lat']=sta['level'].astype('float32')
+    sta['ob']=sta['ob'].astype('float32')
+    for column in sta:
+        if column in ['id','level','time','dtime','lon','lat','ob']:
+            continue
+        else:
+            sta[column]=sta[column].astype('float32')
+    return sta

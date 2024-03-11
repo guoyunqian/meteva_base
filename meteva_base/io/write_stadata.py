@@ -345,7 +345,7 @@ def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
                           ,time_type_attr = time_type,
                           time_bounds_attr = time_bounds)
         
-        
+        sta['time']=pd.to_datetime(sta['time'])
         sta.to_hdf(save_path,key='data')
         
         with h5py.File(save_path, 'a') as file:
@@ -361,7 +361,7 @@ def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
         print(exstr)
         return False
 
-def write_stadata_to_csv(sta0, save_path, creat_dir = False):
+def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False):
     
     try:
         dir = os.path.split(os.path.abspath(save_path))[0]
@@ -380,7 +380,8 @@ def write_stadata_to_csv(sta0, save_path, creat_dir = False):
                           level_type_attr = level_type
                           ,time_type_attr = time_type,
                           time_bounds_attr = time_bounds)
-        sta.to_csv(save_path,index=False)
+        sta['time']=pd.to_datetime(sta['time'])
+        sta.to_csv(save_path,float_format='%.{e}f'.format(e=effective_num),index=False)
         
         attrs_list=''
         

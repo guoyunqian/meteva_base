@@ -108,7 +108,7 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
         else:
             print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
     # 设置格点数据属性
-    set_griddata_attrs(grd, units = units_attr, model_var = model_var_attr, dtime_units =dtime_units_attr,
+    set_griddata_attrs(grd, units = units_attr, model = model_var_attr, dtime_units =dtime_units_attr,
             level_type=level_type_attr , time_type=time_type_attr, time_bounds=time_bounds_attr)
     return
 
@@ -858,12 +858,50 @@ def reset(grd):
 
     return
 
+def get_attrs(da,
+              default_units='',
+              default_model='',
+              default_dtime_units='hour',
+              default_level_type='isobaric',
+              default_time_type='UT',
+              default_time_bounds=[0,0]):
+    if 'units' in da.attrs:
+        units=da.attrs['units']
+    else:
+        units=default_units
+        
+    if 'model' in da.attrs:
+        model=da.attrs['model']
+    else:
+        model=default_model
+        
+    if 'dtime_units' in da.attrs:
+        dtime_units=da.attrs['dtime_units']
+    else:
+        dtime_units=default_dtime_units
+        
+    if 'level_type' in da.attrs:
+        level_type=da.attrs['level_type']
+    else:
+        level_type=default_level_type
+        
+    if 'time_type' in da.attrs:
+        time_type=da.attrs['time_type']
+    else:
+        time_type=default_time_type
+        
+    if 'time_bounds' in da.attrs:
+        time_bounds=da.attrs['time_bounds']
+    else:
+        time_bounds=default_time_bounds
+    
+    return units,model,dtime_units,level_type,time_type,time_bounds
 
-def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
+def set_griddata_attrs(grd, units = None, model = None, dtime_units =None,
             level_type=None ,time_type=None , time_bounds=None):
     if grd.attrs is None: grd.attrs = {}
     if units is not None       : grd.attrs['units'] = units
-    if model_var is not None   : grd.attrs['model_var'] = model_var
+    if model is not None   : grd.attrs['model'] = model
     if dtime_units is not None : grd.attrs['dtime_units'] = dtime_units
     if level_type is not None  : grd.attrs['level_type'] = level_type
     if time_type is not None   : grd.attrs['time_type'] = time_type
