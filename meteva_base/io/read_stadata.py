@@ -270,6 +270,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
+            sta=converse_type(sta)
             return sta
 
         except:
@@ -280,7 +281,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
             print(filename+"文件格式不能识别。可能原因：文件未按micaps3格式存储")
             return None
 
-def read_stadata_from_csv_txt(filename, columns, member_list,skiprows=0,level = None,time = None,dtime = None, drop_same_id=False,
+def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None,time = None,dtime = None, drop_same_id=False,
                           sep = "\s+",dtime_units = "hour",show = False):
 
     """
@@ -366,6 +367,14 @@ def read_stadata_from_csv_txt(filename, columns, member_list,skiprows=0,level = 
             sta.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from "+filename)
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
+            set_stadata_attrs(sta,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
+            sta=converse_type(sta) 
             return sta
         except:
             if show:
@@ -2191,20 +2200,22 @@ def read_stadata_from_csv(filename):
                 value=info.split(',',1)[1]
                 values.append(value)
             attrs_dict = dict(zip(attrs, values))
-            set_stadata_attrs(sta,units_attr = attrs_dict['units'],
-                              model_var_attr = attrs_dict['model'],
-                              dtime_units_attr = attrs_dict['dtime_units'],
-                              level_type_attr = attrs_dict['level_type'],
-                              time_type_attr = attrs_dict['time_type'],
-                              time_bounds_attr =attrs_dict['time_bounds'])
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
+            set_stadata_attrs(sta,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
         else:
             sta=pd.read_csv(filename)
-            set_stadata_attrs(sta,units_attr = '',
-                              model_var_attr = '',
-                              dtime_units_attr = 'hour',
-                              level_type_attr = 'isobaric',
-                              time_type_attr = 'UT',
-                              time_bounds_attr = [0,0])
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
+            set_stadata_attrs(sta,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
     sta=converse_type(sta) 
     return sta
     
