@@ -270,7 +270,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
-            sta=converse_type(sta)
+            converse_type(sta)
             return sta
 
         except:
@@ -1058,11 +1058,28 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                     records.attrs = {}
                     records.attrs["dtime_units"] = dtime_units
                     if station is None:
+                        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(records)
+                        set_stadata_attrs(records,units_attr = units,
+                                          model_var_attr = model,
+                                          dtime_units_attr = dtime_units,
+                                          level_type_attr = level_type
+                                          ,time_type_attr = time_type,
+                                          time_bounds_attr = time_bounds)
+                        converse_type(records)
                         return records
+                    
                     else:
                         sta = meteva_base.put_stadata_on_station(records, station)
                         if show:
                             print("success read from " + filename)
+                        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                        set_stadata_attrs(sta,units_attr = units,
+                                          model_var_attr = model,
+                                          dtime_units_attr = dtime_units,
+                                          level_type_attr = level_type
+                                          ,time_type_attr = time_type,
+                                          time_bounds_attr = time_bounds)
+                        converse_type(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1100,15 +1117,16 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                     sta['level'] = level
                     sta['dtime'] = dtime
                     sta.attrs = {}
-                    sta.attrs["dtime_units"] = dtime_units
                     if show:
                         print("success read from " + filename)
-                    set_stadata_attrs(sta0,units_attr = '',
-                                      model_var_attr = '',
-                                      dtime_units_attr = 'hour',
-                                      level_type_attr = 'isobaric',
-                                      time_type_attr = 'UT',
-                                      time_bounds_attr = [0,0])
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                    set_stadata_attrs(sta,units_attr = units,
+                                      model_var_attr = model,
+                                      dtime_units_attr = dtime_units,
+                                      level_type_attr = level_type
+                                      ,time_type_attr = time_type,
+                                      time_bounds_attr = time_bounds)
+                    converse_type(sta)
                     return sta
 
             else:
@@ -1162,12 +1180,14 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                     sta = meteva_base.put_stadata_on_station(records, station)
                     if show:
                         print("success read from " + filename)
-                    set_stadata_attrs(sta0,units_attr = '',
-                                      model_var_attr = '',
-                                      dtime_units_attr = 'hour',
-                                      level_type_attr = 'isobaric',
-                                      time_type_attr = 'UT',
-                                      time_bounds_attr = [0,0])
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                    set_stadata_attrs(sta,units_attr = units,
+                                      model_var_attr = model,
+                                      dtime_units_attr = dtime_units,
+                                      level_type_attr = level_type
+                                      ,time_type_attr = time_type,
+                                      time_bounds_attr = time_bounds)
+                    converse_type(sta)
                     return sta
         except:
             if show:
@@ -1326,6 +1346,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                                           level_type_attr = 'isobaric',
                                           time_type_attr = 'UT',
                                           time_bounds_attr = [0,0])
+                        converse_type(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1366,15 +1387,16 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                     sta['level'] = level
                     sta['dtime'] = dtime
                     sta.attrs = {}
-                    sta.attrs["dtime_units"] = dtime_units
                     if show:
                         print("success read from " + filename)
-                    set_stadata_attrs(sta0,units_attr = '',
-                                      model_var_attr = '',
-                                      dtime_units_attr = 'hour',
-                                      level_type_attr = 'isobaric',
-                                      time_type_attr = 'UT',
-                                      time_bounds_attr = [0,0])
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                    set_stadata_attrs(sta,units_attr = units,
+                                      model_var_attr = model,
+                                      dtime_units_attr = dtime_units,
+                                      level_type_attr = level_type
+                                      ,time_type_attr = time_type,
+                                      time_bounds_attr = time_bounds)
+                    converse_type(sta)
                     return sta
             else:
                 print(filename + " not exist")
@@ -1515,19 +1537,20 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                 new_columns = ['level', 'time', 'dtime', 'id', 'lon', 'lat', "speed"+data_name,"angle"+data_name]
                 records = records.reindex(columns=new_columns)
                 records.attrs = {}
-                records.attrs["dtime_units"] = dtime_units
                 if station is None:
                     return records
                 else:
                     sta = meteva_base.put_stadata_on_station(records, station)
                     if show:
                         print("success read from " + filename)
-                    set_stadata_attrs(sta,units_attr = '',
-                                      model_var_attr = '',
-                                      dtime_units_attr = 'hour',
-                                      level_type_attr = 'isobaric',
-                                      time_type_attr = 'UT',
-                                      time_bounds_attr = [0,0])
+                    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                    set_stadata_attrs(sta,units_attr = units,
+                                      model_var_attr = model,
+                                      dtime_units_attr = dtime_units,
+                                      level_type_attr = level_type
+                                      ,time_type_attr = time_type,
+                                      time_bounds_attr = time_bounds)
+                    converse_type(sta)
                     return sta
             else:
                 sta = copy.deepcopy(station)
@@ -1568,15 +1591,16 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                 sta['level'] = level
                 sta['dtime'] = dtime
                 sta.attrs = {}
-                sta.attrs["dtime_units"] = dtime_units
                 if show:
                     print("success read from " + filename)
-                set_stadata_attrs(sta,units_attr = '',
-                                  model_var_attr = '',
-                                  dtime_units_attr = 'hour',
-                                  level_type_attr = 'isobaric',
-                                  time_type_attr = 'UT',
-                                  time_bounds_attr = [0,0])
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                set_stadata_attrs(sta,units_attr = units,
+                                  model_var_attr = model,
+                                  dtime_units_attr = dtime_units,
+                                  level_type_attr = level_type
+                                  ,time_type_attr = time_type,
+                                  time_bounds_attr = time_bounds)
+                converse_type(sta)
                 return sta
         except:
             if show:
@@ -1655,15 +1679,15 @@ def read_stadata_from_gds_griddata(filename,station,level = None,time =None,dtim
                 sta.loc[:, "dtime"] = dtime
                 meteva_base.set_stadata_names(sta,[data_name])
                 sta.attrs = {}
-                sta.attrs["dtime_units"] = dtime_units
                 if show:
                     print("success read from " + filename)
-                set_stadata_attrs(sta0,units_attr = '',
-                                  model_var_attr = '',
-                                  dtime_units_attr = 'hour',
-                                  level_type_attr = 'isobaric',
-                                  time_type_attr = 'UT',
-                                  time_bounds_attr = [0,0])    
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                set_stadata_attrs(sta,units_attr = units,
+                                  model_var_attr = model,
+                                  dtime_units_attr = dtime_units,
+                                  level_type_attr = level_type
+                                  ,time_type_attr = time_type,
+                                  time_bounds_attr = time_bounds)  
                 return sta
             else:
                 print(filename + " not exist")
@@ -1805,7 +1829,13 @@ def read_stadata_from_micaps16(filename,level = None,time= None,dtime = None,dat
             station = meteva_base.sta_data(station)
             meteva_base.set_stadata_coords(station,level=level,time= time,dtime = dtime)
             station.attrs = {}
-            station.attrs["dtime_units"] = dtime_units
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(station)
+            set_stadata_attrs(station,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
             if show:
                 print("success read from " + filename)
             return station
@@ -1881,15 +1911,16 @@ def read_stadata_from_gds_griddata_file(filename,station,level = None,time = Non
             sta.loc[:, "dtime"] = dtime
             meteva_base.set_stadata_names(sta, [data_name])
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from " + filename)
-            set_stadata_attrs(sta0,units_attr = '',
-                              model_var_attr = '',
-                              dtime_units_attr = 'hour',
-                              level_type_attr = 'isobaric',
-                              time_type_attr = 'UT',
-                              time_bounds_attr = [0,0])
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+            set_stadata_attrs(sta,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
+            converse_type(sta)
             return sta
         except:
             if show:
@@ -1981,15 +2012,16 @@ def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = Non
             sta.loc[:, "dtime"] = dtime
             meteva_base.set_stadata_names(sta,["u"+data_name,"v"+data_name])
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from " + filename)
-            set_stadata_attrs(sta,units_attr = '',
-                              model_var_attr = '',
-                              dtime_units_attr = 'hour',
-                              level_type_attr = 'isobaric',
-                              time_type_attr = 'UT',
-                              time_bounds_attr = [0,0])
+            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+            set_stadata_attrs(sta,units_attr = units,
+                              model_var_attr = model,
+                              dtime_units_attr = dtime_units,
+                              level_type_attr = level_type
+                              ,time_type_attr = time_type,
+                              time_bounds_attr = time_bounds)
+            converse_type(sta)
             return sta
         except:
             if show:
@@ -2030,13 +2062,14 @@ def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime
     else:
         print("数据读取失败")
     sta.attrs = {}
-    sta.attrs["dtime_units"] = dtime_units
-    set_stadata_attrs(sta,units_attr = '',
-                      model_var_attr = '',
-                      dtime_units_attr = 'hour',
-                      level_type_attr = 'isobaric',
-                      time_type_attr = 'UT',
-                      time_bounds_attr = [0,0])
+    units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+    set_stadata_attrs(sta,units_attr = units,
+                      model_var_attr = model,
+                      dtime_units_attr = dtime_units,
+                      level_type_attr = level_type
+                      ,time_type_attr = time_type,
+                      time_bounds_attr = time_bounds)
+    converse_type(sta)
     return sta
 
 
@@ -2080,6 +2113,7 @@ def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtim
         meteva_base.set_stadata_coords(sta,time = time1,dtime=dtime,level=level)
         if (station is not None):
             sta = meteva_base.put_stadata_on_station(sta, station)
+            converse_type(sta)
         return sta
     except:
         if show:
@@ -2133,13 +2167,14 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_u
 
         sta2 = pd.DataFrame(dat_dict)
         sta2.attrs = {}
-        sta2.attrs["dtime_units"] = dtime_units
-        set_stadata_attrs(sta2,units_attr = '',
-                          model_var_attr = '',
-                          dtime_units_attr = 'hour',
-                          level_type_attr = 'isobaric',
-                          time_type_attr = 'UT',
-                          time_bounds_attr = [0,0])
+        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta2)
+        set_stadata_attrs(sta2,units_attr = units,
+                          model_var_attr = model,
+                          dtime_units_attr = dtime_units,
+                          level_type_attr = level_type
+                          ,time_type_attr = time_type,
+                          time_bounds_attr = time_bounds)
+        converse_type(sta2)
         return sta2
     except:
         if show:
@@ -2168,7 +2203,7 @@ def read_stadata_from_hdf(filename):
                       level_type_attr = level_type
                       ,time_type_attr = time_type,
                       time_bounds_attr = time_bounds)
-    sta=converse_type(sta)
+    converse_type(sta)
     return sta
 
 def read_stadata_from_csv(filename):
@@ -2216,7 +2251,7 @@ def read_stadata_from_csv(filename):
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-    sta=converse_type(sta) 
+    converse_type(sta) 
     return sta
     
     

@@ -63,7 +63,7 @@ def sta_data(df,columns = None,
 
     set_stadata_attrs(sta,units_attr = units_attr,model_var_attr = model_var_attr,dtime_units_attr = dtime_units_attr,
                       level_type_attr = level_type_attr,time_type_attr = time_type_attr,time_bounds_attr = time_bounds_attr,)
-
+    sta=converse_type(sta)
     return sta
 
 def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_attr =None,
@@ -266,10 +266,7 @@ def converse_type(sta):
     sta['id']=sta['id'].astype('int32')
     sta['lon']=sta['level'].astype('float32')
     sta['lat']=sta['level'].astype('float32')
-    sta['ob']=sta['ob'].astype('float32')
     for column in sta:
-        if column in ['id','level','time','dtime','lon','lat','ob']:
-            continue
-        else:
+        if column  not in ['id','level','time','dtime','lon','lat']:
             sta[column]=sta[column].astype('float32')
-    return sta
+    return None
