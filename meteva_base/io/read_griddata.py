@@ -133,6 +133,7 @@ def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime
                 if show:
                     print("success read from " + filename)
                 da1.data=np.float32(da1.data)
+                set_griddata_coords_type(da1)
                 return da1
             else:
                 meteva_base.basicdata.set_griddata_attrs(da1, 
@@ -148,7 +149,8 @@ def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime
                 #da2.name = "data0"
                 if show:
                     print("success read from " + filename)
-                da1.data=np.float32(da1.data)
+                da2.data=np.float32(da2.data)
+                set_griddata_coords_type(da2)
                 return da2
         else:
             print("自描述信息中的网格数是：" +str(nlon1) + "*" + str(nlat1) +"="+ str(nlon1 * nlat1))
@@ -475,6 +477,7 @@ def read_griddata_from_nc(filename,grid = None,
             if show:
                 print("success read from " + filename)
             da1.data=np.float32(da1.data)
+            set_griddata_coords_type(da1)
             return da1
         else:
             meteva_base.basicdata.set_griddata_attrs(da1, 
@@ -491,6 +494,7 @@ def read_griddata_from_nc(filename,grid = None,
             if show:
                 print("success read from " + filename)
             da2.data=np.float32(da2.data)
+            set_griddata_coords_type(da2)
             return da2
     except (Exception, BaseException) as e:
         exstr = traceback.format_exc()
@@ -617,6 +621,7 @@ def read_griddata_from_grib(filename,level_type= None,grid = None,
             if show:
                 print("success read from " + filename)
             da1.data=np.float32(da1.data)
+            set_griddata_coords_type(da1)
             return da1
         else:
             meteva_base.basicdata.set_griddata_attrs(da1, 
@@ -633,6 +638,7 @@ def read_griddata_from_grib(filename,level_type= None,grid = None,
             if show:
                 print("success read from " + filename)
             da2.data=np.float32(da2.data)
+            set_griddata_coords_type(da2)
             return da2
     except (Exception, BaseException) as e:
         exstr = traceback.format_exc()
@@ -660,7 +666,8 @@ def read_griddata_from_gds_file(filename,grid = None,level = None,time = None,dt
                                                  )
         if show:
             print("success read from " + filename)
-        grd.data=np.float32(grd.data)   
+        grd.data=np.float32(grd.data) 
+        set_griddata_coords_type(grd)
         return grd
     except Exception as e:
         print(e)
@@ -705,6 +712,7 @@ def read_griddata_from_gds(filename,grid = None,level = None,time = None,dtime =
                 if show:
                     print("success read from " + filename)
                 grd.data=np.float32(grd.data)
+                set_griddata_coords_type(grd)
                 return grd
             else:
                 print(filename + " not exist")
@@ -756,6 +764,7 @@ def read_gridwind_from_gds(filename,grid = None,level = None,time = None,dtime =
                 if show:
                     print("success read from " + filename)
                 grd.data=np.float32(grd.data)
+                set_griddata_coords_type(grd)
                 return grd
             else:
                 print(filename + " not exist")
@@ -854,7 +863,8 @@ def decode_griddata_from_gds_byteArray(byteArray,grid = None,level = None,time =
                                                  level_type= level_type , 
                                                  time_type= time_type, 
                                                  time_bounds=time_bounds)
-        grd.data=np.float32(grd.data)                                       
+        grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)                                       
         return grd
     else:
         meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -868,6 +878,7 @@ def decode_griddata_from_gds_byteArray(byteArray,grid = None,level = None,time =
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
         da.data=np.float32(da.data)
+        set_griddata_coords_type(da)
         return da
 
 
@@ -940,6 +951,7 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
                                                          time_bounds= time_bounds
                                                          )
                 wind.data=np.float32(wind.data)
+                set_griddata_coords_type(wind)
                 return wind
             else:
                 meteva_base.basicdata.set_griddata_attrs(wind, 
@@ -952,6 +964,7 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
                                                          )
                 wind2 = meteva_base.interp_gg_linear(wind, grid,outer_value=outer_value)
                 wind2.data=np.float32(wind2.data)
+                set_griddata_coords_type(wind2)
                 return wind2
     else:
         member_list = []
@@ -997,6 +1010,7 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
                                                      time_bounds= time_bounds
                                                      )
             wind_en.data=np.float32(wind_en.data)
+            set_griddata_coords_type(wind_en)
             return wind_en
         else:
             meteva_base.basicdata.set_griddata_attrs(wind_en2, 
@@ -1009,6 +1023,7 @@ def decode_gridwind_from_gds_byteArray(byteArray,grid = None,level = None,time =
                                                      )
             wind_en2 = meteva_base.interp_gg_linear(wind_en, grid,outer_value=outer_value)
             wind_en2.data=np.float32(wind_en2.data)
+            set_griddata_coords_type(wind_en2)
             return wind_en2
 
 
@@ -1032,6 +1047,7 @@ def read_gridwind_from_gds_file(filename,grid = None,level = None,time = None,dt
         if show:
             print("success read from " + filename)
         wind.data=np.float32(wind.data)
+        set_griddata_coords_type(wind)
         return wind
     except:
         if show:
@@ -1078,6 +1094,7 @@ def read_gridwind_from_micaps2(filename,grid = None,level = None,time = None,dti
                 if show:
                     print("success read from " + filename)
                 wind1.data=np.float32(wind1.data)
+                set_griddata_coords_type(wind1)
                 return wind1
         except:
             if show:
@@ -1141,6 +1158,7 @@ def read_gridwind_from_micaps11(filename,grid = None,level = None,time = None,dt
                                                              time_bounds= time_bounds
                                                              )
                     wind.data=np.float32(wind.data)
+                    set_griddata_coords_type(wind)
                     return wind
                 else:
                     meteva_base.basicdata.set_griddata_attrs(wind, 
@@ -1155,6 +1173,7 @@ def read_gridwind_from_micaps11(filename,grid = None,level = None,time = None,dt
                     if show:
                         print("success read from " + filename)
                     wind1.data=np.float32(wind1.data)
+                    set_griddata_coords_type(wind1)
                     return wind1
             else:
 
@@ -1267,6 +1286,7 @@ def read_AWX_from_gds(filename,grid = None,level = None,time = None,dtime = None
                     if show:
                         print("success read from " + filename)
                     grd.data=np.float32(grd.data)
+                    set_griddata_coords_type(grd)
                     return grd
                 else:
                     meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -1283,6 +1303,7 @@ def read_AWX_from_gds(filename,grid = None,level = None,time = None,dtime = None
                     if show:
                         print("success read from " + filename)
                     da.data=np.float32(da.data)
+                    set_griddata_coords_type(da)
                     return da
             else:
                 print(filename + " not exist")
@@ -1370,6 +1391,7 @@ def decode_griddata_from_AWX_byteArray(byteArray,grid = None,level = None,time =
                                                  time_bounds= time_bounds
                                                  )
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     else:
         meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -1383,6 +1405,7 @@ def decode_griddata_from_AWX_byteArray(byteArray,grid = None,level = None,time =
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
         da.data=np.float32(da.data)
+        set_griddata_coords_type(da)
         return da
 
 def read_griddata_from_AWX_file(filename,grid = None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
@@ -1405,6 +1428,7 @@ def read_griddata_from_AWX_file(filename,grid = None,level = None,time = None,dt
         if show:
             print("success read from " + filename)
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     except:
         if show:
@@ -1441,6 +1465,7 @@ def read_griddata_from_binary(filename,grid = None,level = None,time = None,dtim
         if show:
             print("success read from " + filename)
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     except:
         if show:
@@ -1551,6 +1576,7 @@ def decode_griddata_from_radar_byteArray(byteArray,grid = None,level = None,time
                                                  time_bounds= time_bounds
                                                  )
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     else:
         meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -1564,6 +1590,7 @@ def decode_griddata_from_radar_byteArray(byteArray,grid = None,level = None,time
         da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
         da.name = "data0"
         da.data=np.float32(da.data)
+        set_griddata_coords_type(da)
         return da
 
 def read_griddata_from_radar_latlon_file(filename,grid = None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
@@ -1617,6 +1644,7 @@ def read_griddata_from_bz2_file(filename,decode_method,grid = None,level = None,
         if show:
             print("successed read griddata from "+ filename)
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     except:
         if show:
@@ -1662,6 +1690,7 @@ def read_radar_latlon_from_gds(filename,grid = None,level = None,time = None,dti
                                                          time_bounds= time_bounds
                                                          )
                 grd.data=np.float32(grd.data)
+                set_griddata_coords_type(grd)
                 return grd
             else:
                 print(filename + " not exist")
@@ -1715,6 +1744,7 @@ def read_griddata_from_rasterData(filename,grid = None,level = None,time = None,
                                                      time_bounds= time_bounds
                                                      )
             grd.data=np.float32(grd.data)
+            set_griddata_coords_type(grd)
             return grd
         else:
             meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -1728,6 +1758,7 @@ def read_griddata_from_rasterData(filename,grid = None,level = None,time = None,
             da = meteva_base.interp_gg_linear(grd, grid,outer_value=outer_value)
             da.name = "data0"
             da.data=np.float32(da.data)
+            set_griddata_coords_type(da)
             return da
     except:
         if show:
@@ -1796,6 +1827,7 @@ def read_griddata_from_cmadaas(dataCode,element,level_type,level,time,dtime = No
                                                      time_bounds= time_bounds
                                                      )
     grd.data=np.float32(grd.data)
+    set_griddata_coords_type(grd)
     return grd
 
 
@@ -1850,6 +1882,7 @@ def read_griddata_from_cimiss(dataCode,element,level,time,dtime,grid = None,data
                                              time_bounds= time_bounds
                                              )
     grd.data=np.float32(grd.data)
+    set_griddata_coords_type(grd)
     return grd
 
 
@@ -1901,6 +1934,7 @@ def decode_griddata_from_radar_mosaic_v3_byteArray(byteArray, grid=None, level=N
                                                  time_bounds= time_bounds
                                                  )
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     else:
         return None
@@ -1928,6 +1962,7 @@ def read_griddata_from_radar_mosaic_v3_file(filename, grid=None, level=None, tim
         if show:
             print("success read from " + filename)
         da.data=np.float32(da.data)
+        set_griddata_coords_type(da)
         return grd
     except:
         if show:
@@ -1974,6 +2009,7 @@ def read_griddata_from_radar_mosaic_v3_gds(filename, grid=None, level=None, time
                 if show:
                     print("success read from " + filename)
                 grd.data=np.float32(grd.data)
+                set_griddata_coords_type(grd)
                 return grd
             else:
                 print(filename + " not exist")
@@ -2109,8 +2145,9 @@ def read_griddata_from_ctl(ctl_path,data_path = None,value_name = None,dtime_dim
                                                      level_type= level_type , 
                                                      time_type= time_type, 
                                                      time_bounds= time_bounds
-                                                     )
+                                                     )            
             grd.data=np.float32(grd.data)
+            set_griddata_coords_type(grd)
             return grd
 
         else:
@@ -2165,6 +2202,7 @@ def read_griddata_from_ctl(ctl_path,data_path = None,value_name = None,dtime_dim
                                                      time_bounds= time_bounds
                                                      )
             grd_one_var.data=np.float32(grd_one_var.data)
+            set_griddata_coords_type(grd_one_var)
             return grd_one_var
     except:
         if show:
@@ -2282,7 +2320,8 @@ def decode_griddata_from_swan_d131_byteArray(byteArray,grid = None,level = None,
                                              time_type= time_type, 
                                              time_bounds= time_bounds
                                              )
-    grd.data=np.float32(grd.data)
+    grd.data=np.float32(grd.data) #尝试astype()
+    set_griddata_coords_type(grd)
     return grd
 
 
@@ -2316,6 +2355,7 @@ def read_griddata_from_swan_d131(filename,grid = None,level = None,time = None,d
                                                  time_bounds= time_bounds
                                                  )
         grd.data=np.float32(grd.data)
+        set_griddata_coords_type(grd)
         return grd
     except:
         if show:
@@ -2371,6 +2411,7 @@ def read_griddata_from_ensemble_grads(filename, dtype=np.float32,
                                              time_bounds= time_bounds
                                              )
     grd_ens1.data=np.float32(grd_ens1.data)
+    set_griddata_coords_type(grd_ens1)
     return grd_ens1
 
 
@@ -2466,6 +2507,7 @@ def read_griddata_from_ensemble_sav(filename, dt=None, unit='mm', var=None,dtime
                                              time_bounds= time_bounds
                                              )
     grd_ens1.data=np.float32(grd_ens1.data)
+    set_griddata_coords_type(grd_ens1)
     return grd_ens1
 
 
@@ -2509,6 +2551,7 @@ def read_griddata_from_swan_d131_gds(filename, grid=None, level=None, time=None,
                                                          time_bounds= time_bounds
                                                          )
                 grd.data=np.float32(grd.data)
+                set_griddata_coords_type(grd)
                 return grd
             else:
                 print(filename + " not exist")

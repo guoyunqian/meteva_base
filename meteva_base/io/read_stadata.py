@@ -72,7 +72,7 @@ def read_station(filename,keep_alt = False,show = False):
             print(filename + "文件格式不能识别。可能原因：文件未按micaps格式存储")
             return None
 
-def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,dtime_units = "hour",show = False):
+def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,show = False):
     '''
     读取micaps3格式文件转换为pandas中dataframe结构的数据
 
@@ -153,13 +153,13 @@ def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,dtime_un
             if show:
                 print("success read from " + filename)
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             set_stadata_attrs(sta,units_attr = '',
                               model_var_attr = '',
                               dtime_units_attr = 'hour',
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
+            sta=converse_stadata_type(sta)
             return sta
         except:
             if show:
@@ -169,7 +169,7 @@ def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,dtime_un
             print(filename+"文件格式不能识别。可能原因：文件未按micaps3格式存储")
             return None
 
-def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dtime=None, data_name='data0', drop_same_id=True,dtime_units = "hour",show = False):
+def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dtime=None, data_name='data0', drop_same_id=True,show = False):
     '''
     读取micaps3格式文件转换为pandas中dataframe结构的数据
 
@@ -261,7 +261,6 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
             if (station is not None):
                 sta = meteva_base.put_stadata_on_station(sta, station)
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from " + filename)
             set_stadata_attrs(sta,units_attr = '',
@@ -270,7 +269,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
-            converse_type(sta)
+            sta=converse_stadata_type(sta)
             return sta
 
         except:
@@ -282,7 +281,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
             return None
 
 def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None,time = None,dtime = None, drop_same_id=False,
-                          sep = "\s+",dtime_units = "hour",show = False):
+                          sep = "\s+",show = False):
 
     """
     读取站点数据
@@ -364,7 +363,6 @@ def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None
 
             meteva_base.basicdata.reset_id(sta)
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from "+filename)
             units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
@@ -374,7 +372,7 @@ def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            sta=converse_type(sta) 
+            sta=converse_stadata_type(sta)
             return sta
         except:
             if show:
@@ -383,7 +381,7 @@ def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None
             print(filename+"文件格式不能识别。可能原因：文件未按pandas能够识别的csv格式存储")
             return None
 
-def read_stadata_from_sevp(filename, element_id,level=None,time=None,data_name = "data0",show = False,dtime_units = "hour"):
+def read_stadata_from_sevp(filename, element_id,level=None,time=None,data_name = "data0",show = False):
     '''
     兼容多个时次的预报产品文件 txt格式
     :param：filename:文件路径和名称
@@ -447,7 +445,6 @@ def read_stadata_from_sevp(filename, element_id,level=None,time=None,data_name =
             df["level"] = level
             sta = meteva_base.sta_data(df)
             sta.attrs = {}
-            sta.attrs["dtime_units"] = dtime_units
             set_stadata_attrs(sta,units_attr = '',
                               model_var_attr = '',
                               dtime_units_attr = 'hour',
@@ -462,7 +459,7 @@ def read_stadata_from_sevp(filename, element_id,level=None,time=None,data_name =
             print(filename + " 文件格式异常")
 
 
-def read_stadata_from_micaps1_2_8(filename, column, station=None, level=None,time=None, dtime=None, data_name='data0', drop_same_id=True,dtime_units = "hour",show = False):
+def read_stadata_from_micaps1_2_8(filename, column, station=None, level=None,time=None, dtime=None, data_name='data0', drop_same_id=True,show = False):
     '''
     read_from_micaps1_2_8  读取m1、m2、m8格式的文件
     :param filename: 文件路径
@@ -528,12 +525,10 @@ def read_stadata_from_micaps1_2_8(filename, column, station=None, level=None,tim
                 print("success read from "+filename)
             if station is None:
                 sta2.attrs = {}
-                sta2.attrs["dtime_units"] = dtime_units
                 return sta2
             else:
                 sta = meteva_base.put_stadata_on_station(sta2, station)
                 sta.attrs = {}
-                sta.attrs["dtime_units"] = dtime_units
                 set_stadata_attrs(sta,units_attr = '',
                                   model_var_attr = '',
                                   dtime_units_attr = 'hour',
@@ -549,7 +544,7 @@ def read_stadata_from_micaps1_2_8(filename, column, station=None, level=None,tim
             return None
 
 
-def read_stadata_from_micaps41_lightning(filename, column, level=0,data_name='data0', show = False,keep_millisecond = False,dtime_units = "hour"):
+def read_stadata_from_micaps41_lightning(filename, column, level=0,data_name='data0', show = False,keep_millisecond = False):
     '''
         read_from_micaps41  读取m41格式的文件
         :param filename: 文件路径
@@ -582,7 +577,6 @@ def read_stadata_from_micaps41_lightning(filename, column, level=0,data_name='da
             sta2.loc[:, "level"] = level
             sta2.loc[:, "dtime"] = 0
             sta2.attrs = {}
-            sta2.attrs["dtime_units"] = dtime_units
             if show:
                 print("success read from " + filename)
             set_stadata_attrs(sta2,units_attr = '',
@@ -685,7 +679,7 @@ def read_gds_ip_port(filename,show = False):
         print("success read from " + filename)
     return ip,port
 
-def read_stadata_from_gds(filename,element_id = None,station = None, level=None,time=None, dtime=None, data_name='data0',dtime_units = "hour",show = False):
+def read_stadata_from_gds(filename,element_id = None,station = None, level=None,time=None, dtime=None, data_name='data0',show = False):
     '''
     :param ip: 为字符串形式，示例 “10.20.30.40”
     :param port: 为整数形式 示例 8080
@@ -864,7 +858,6 @@ def read_stadata_from_gds(filename,element_id = None,station = None, level=None,
                         sta['level'] = level
                         sta['dtime'] = dtime
                         sta.attrs = {}
-                        sta.attrs["dtime_units"] = dtime_units
                         if show:
                             print("success read from " + filename)
                         set_stadata_attrs(sta,units_attr = '',
@@ -914,7 +907,6 @@ def read_stadata_from_gds(filename,element_id = None,station = None, level=None,
                     records = records.reindex(columns=new_columns)
                     meteva_base.reset_id(records)
                     records.attrs = {}
-                    records.attrs["dtime_units"] = dtime_units
                     if station is None:
                         return records
                     else:
@@ -942,7 +934,7 @@ def read_stadata_from_gds(filename,element_id = None,station = None, level=None,
         return None
 
 
-def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=None,time=None, dtime=None, data_name='data0',dtime_units = "hour",show = False):
+def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=None,time=None, dtime=None, data_name='data0',show = False):
 
     element_id0 = element_id
     if element_id is not None:
@@ -1056,7 +1048,6 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                     new_columns = ['level', 'time', 'dtime', 'id', 'lon', 'lat', data_name]
                     records = records.reindex(columns=new_columns)
                     records.attrs = {}
-                    records.attrs["dtime_units"] = dtime_units
                     if station is None:
                         units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(records)
                         set_stadata_attrs(records,units_attr = units,
@@ -1065,7 +1056,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                           level_type_attr = level_type
                                           ,time_type_attr = time_type,
                                           time_bounds_attr = time_bounds)
-                        converse_type(records)
+                        records=converse_stadata_type(records)
                         return records
                     
                     else:
@@ -1079,7 +1070,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                           level_type_attr = level_type
                                           ,time_type_attr = time_type,
                                           time_bounds_attr = time_bounds)
-                        converse_type(sta)
+                        sta=converse_stadata_type(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1126,7 +1117,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    converse_type(sta)
+                    sta=converse_stadata_type(sta)
                     return sta
 
             else:
@@ -1173,7 +1164,6 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                 records = records.reindex(columns=new_columns)
                 meteva_base.reset_id(records)
                 records.attrs = {}
-                records.attrs["dtime_units"] = dtime_units
                 if station is None:
                     return records
                 else:
@@ -1187,7 +1177,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    converse_type(sta)
+                    sta=converse_stadata_type(sta)
                     return sta
         except:
             if show:
@@ -1197,7 +1187,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
             return None
 
 
-def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=None,data_name = "",dtime_units = "hour",show = True):
+def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=None,data_name = "",show = True):
 
     if meteva_base.gds_ip_port is None:
         print("请先使用set_config 配置gds的ip和port")
@@ -1333,7 +1323,6 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                     new_columns = ['level', 'time', 'dtime', 'id', 'lon', 'lat', "speed"+data_name,"angle"+data_name]
                     records = records.reindex(columns=new_columns)
                     records.attrs = {}
-                    records.attrs["dtime_units"] = dtime_units
                     if station is None:
                         return records
                     else:
@@ -1346,7 +1335,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                                           level_type_attr = 'isobaric',
                                           time_type_attr = 'UT',
                                           time_bounds_attr = [0,0])
-                        converse_type(sta)
+                        sta=converse_stadata_type(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1396,7 +1385,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    converse_type(sta)
+                    sta=converse_stadata_type(sta)
                     return sta
             else:
                 print(filename + " not exist")
@@ -1411,7 +1400,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
         print(filename + "数据读取失败")
         return None
 
-def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dtime=None,data_name = "",dtime_units = "hour",show = False):
+def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dtime=None,data_name = "",show = False):
     if not os.path.exists(filename):
         print(filename+"文件不存在")
         return None
@@ -1550,7 +1539,7 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    converse_type(sta)
+                    sta=converse_stadata_type(sta)
                     return sta
             else:
                 sta = copy.deepcopy(station)
@@ -1600,7 +1589,7 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                                   level_type_attr = level_type
                                   ,time_type_attr = time_type,
                                   time_bounds_attr = time_bounds)
-                converse_type(sta)
+                sta=converse_stadata_type(sta)
                 return sta
         except:
             if show:
@@ -1610,7 +1599,7 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
             return None
 
 
-def read_stadata_from_gds_griddata(filename,station,level = None,time =None,dtime = None,data_name = "data0",dtime_units = "hour",show = False):
+def read_stadata_from_gds_griddata(filename,station,level = None,time =None,dtime = None,data_name = "data0",show = False):
     # ip 为字符串形式，示例 “10.20.30.40”
     # port 为整数形式
     # filename 为字符串形式 示例 "ECMWF_HR/TCDC/19083108.000"
@@ -1780,7 +1769,7 @@ def print_gds_file_values_names(filename):
                     print(ele + ":" + key)
     return dict0
 
-def read_stadata_from_micaps16(filename,level = None,time= None,dtime = None,data_name = "data0",dtime_units = "hour",show = False):
+def read_stadata_from_micaps16(filename,level = None,time= None,dtime = None,data_name = "data0",show = False):
     if not os.path.exists(filename):
         print(filename+"文件不存在")
         return None
@@ -1847,7 +1836,7 @@ def read_stadata_from_micaps16(filename,level = None,time= None,dtime = None,dat
             return None
 
 
-def read_stadata_from_gds_griddata_file(filename,station,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",show = False):
+def read_stadata_from_gds_griddata_file(filename,station,level = None,time = None,dtime = None,data_name = "data0",show = False):
 
     if not os.path.exists(filename):
         print(filename+"文件不存在")
@@ -1920,7 +1909,7 @@ def read_stadata_from_gds_griddata_file(filename,station,level = None,time = Non
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            converse_type(sta)
+            sta=converse_stadata_type(sta)
             return sta
         except:
             if show:
@@ -1930,7 +1919,7 @@ def read_stadata_from_gds_griddata_file(filename,station,level = None,time = Non
             return None
 
 
-def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = None,dtime = None,data_name = "",dtime_units = "hour",show = False):
+def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = None,dtime = None,data_name = "",show = False):
 
     if not os.path.exists(filename):
         print(filename+"文件不存在")
@@ -2021,7 +2010,7 @@ def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = Non
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            converse_type(sta)
+            sta=converse_stadata_type(sta)
             return sta
         except:
             if show:
@@ -2031,7 +2020,7 @@ def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = Non
             return None
 
 
-def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime=0,data_name= None,id_type = "Station_Id_D",dtime_units = "hour",show = False):
+def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime=0,data_name= None,id_type = "Station_Id_D",show = False):
     ## stations
     qparams = {'interfaceId': 'getSurfEleByTime',
                'dataCode': dataCode,
@@ -2059,6 +2048,7 @@ def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime
         sta['dtime'] = dtime
         if (station is not None):
             sta = meteva_base.put_stadata_on_station(sta, station)
+        sta.attrs = {}
     else:
         print("数据读取失败")
     sta.attrs = {}
@@ -2069,11 +2059,11 @@ def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime
                       level_type_attr = level_type
                       ,time_type_attr = time_type,
                       time_bounds_attr = time_bounds)
-    converse_type(sta)
+    sta=converse_stadata_type(sta)
     return sta
 
 
-def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtime = 0,id_type = "Station_Id_D",dtime_units = "hour",show = False):
+def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtime = 0,id_type = "Station_Id_D",show = False):
 
     time1 = meteva_base.all_type_time_to_datetime(time)
     time_str = time1.strftime("%Y%m%d%H%M%S")
@@ -2113,7 +2103,7 @@ def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtim
         meteva_base.set_stadata_coords(sta,time = time1,dtime=dtime,level=level)
         if (station is not None):
             sta = meteva_base.put_stadata_on_station(sta, station)
-            converse_type(sta)
+            sta=converse_stadata_type(sta)
         return sta
     except:
         if show:
@@ -2122,7 +2112,10 @@ def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtim
         return None
 
 
-def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_units = "hour",show = False):
+def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",show = False):
+    if not os.path.exists(filename):
+        print(filename+"文件不存在")
+        return None
     try:
         column_all = [0, 1, 2, 3, 4, 5, 6]
         if isinstance(column, list):
@@ -2174,7 +2167,7 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_u
                           level_type_attr = level_type
                           ,time_type_attr = time_type,
                           time_bounds_attr = time_bounds)
-        converse_type(sta2)
+        sta2=converse_stadata_type(sta2)
         return sta2
     except:
         if show:
@@ -2182,7 +2175,18 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",dtime_u
             print(exstr)
         return None
 
-def read_stadata_from_hdf(filename):
+def read_stadata_from_hdf(filename, station=None, drop_same_id=True, show = False):
+    """
+    Parameters
+    ----------
+    :param filename: 文件路径
+    :param station: 站号，默认：None
+    :param drop_same_id: 是否要删除相同id的行  默认为True
+
+    Returns
+    -------
+    sta :读取后的站点数据 pd.DataFrame
+    """
     if not os.path.exists(filename):
         print(filename+"文件不存在")
         return None
@@ -2193,66 +2197,106 @@ def read_stadata_from_hdf(filename):
         print(filename+"是文件夹而不是文件")
         return None
     
-    sta=pd.read_hdf(filename)
+    try:
     
-    with h5py.File(filename, 'a') as file:
-       units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
-    set_stadata_attrs(sta,units_attr = units,
-                      model_var_attr = model,
-                      dtime_units_attr = dtime_units,
-                      level_type_attr = level_type
-                      ,time_type_attr = time_type,
-                      time_bounds_attr = time_bounds)
-    converse_type(sta)
-    return sta
-
-def read_stadata_from_csv(filename):
-    if not os.path.exists(filename):
-        print(filename+"文件不存在")
-        return None
-    elif os.path.isdir(filename):
-        print(filename+"是文件夹而不是文件")
-        return None
-    elif os.path.isdir(filename):
-        print(filename+"是文件夹而不是文件")
-        return None
-    
-    
-    with open(filename,'r+') as f:
-        content=f.readlines()
-
-        if content[0]=='attrs,values'+'\n':
-            sta=pd.read_csv(filename,skiprows=7)
+        sta=pd.read_hdf(filename)
+        
+        with h5py.File(filename, 'a') as file:
+           units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
+        set_stadata_attrs(sta,units_attr = units,
+                          model_var_attr = model,
+                          dtime_units_attr = dtime_units,
+                          level_type_attr = level_type
+                          ,time_type_attr = time_type,
+                          time_bounds_attr = time_bounds)
+        if station is not None:
+            sta = meteva_base.put_stadata_on_station(sta, station)
             
-            infos=content[1:7]
-            attrs=[]
-            values=[]
-            for info in infos:
-                info=info.replace('\n','')
-                info=info.replace('"','')
-                attr=info.split(',')[0]
-                attrs.append(attr)
-                value=info.split(',',1)[1]
-                values.append(value)
-            attrs_dict = dict(zip(attrs, values))
-            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
-            set_stadata_attrs(sta,units_attr = units,
-                              model_var_attr = model,
-                              dtime_units_attr = dtime_units,
-                              level_type_attr = level_type
-                              ,time_type_attr = time_type,
-                              time_bounds_attr = time_bounds)
-        else:
-            sta=pd.read_csv(filename)
-            units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(file)
-            set_stadata_attrs(sta,units_attr = units,
-                              model_var_attr = model,
-                              dtime_units_attr = dtime_units,
-                              level_type_attr = level_type
-                              ,time_type_attr = time_type,
-                              time_bounds_attr = time_bounds)
-    converse_type(sta) 
-    return sta
+        if drop_same_id:
+             sta = sta.drop_duplicates(['id'])    
+        sta=converse_stadata_type(sta)
+        if show:
+            print("success read from "+filename)
+        return sta
+    except:
+        if show:
+            exstr = traceback.format_exc()
+            print(exstr)
+        print(filename+'reading failed')
+        
+
+def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = False):
+    """
+    Parameters
+    ----------
+    :param filename: 文件路径
+    :param station: 站号，默认：None
+    :param drop_same_id: 是否要删除相同id的行  默认为True
+
+    Returns
+    -------
+    sta :读取后的站点数据 pd.DataFrame
+    """
+    if not os.path.exists(filename):
+        print(filename+"文件不存在")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    elif os.path.isdir(filename):
+        print(filename+"是文件夹而不是文件")
+        return None
+    
+    try:
+        with open(filename,'r+') as f:
+            content=f.readlines()
+    
+            if content[0]=='attrs,values'+'\n':
+                sta=pd.read_csv(filename,skiprows=7)
+                
+                infos=content[1:7]
+                attrs=[]
+                values=[]
+                for info in infos:
+                    info=info.replace('\n','')
+                    info=info.replace('"','')
+                    attr=info.split(',')[0]
+                    attrs.append(attr)
+                    value=info.split(',',1)[1]
+                    values.append(value)
+                attrs_dict = dict(zip(attrs, values))
+                units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                set_stadata_attrs(sta,units_attr = units,
+                                  model_var_attr = model,
+                                  dtime_units_attr = dtime_units,
+                                  level_type_attr = level_type
+                                  ,time_type_attr = time_type,
+                                  time_bounds_attr = time_bounds)
+            else:
+                # sta=pd.read_csv(filename)
+                # units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
+                # set_stadata_attrs(sta,units_attr = units,
+                #                   model_var_attr = model,
+                #                   dtime_units_attr = dtime_units,
+                #                   level_type_attr = level_type
+                #                   ,time_type_attr = time_type,
+                #                   time_bounds_attr = time_bounds)
+                print('数据格式有误，请使用对应方法自行读取')
+        if station is not None:
+            sta = meteva_base.put_stadata_on_station(sta, station)
+            
+        if drop_same_id:
+             sta = sta.drop_duplicates(['id'])  
+        sta=converse_stadata_type(sta)
+        if show:
+            print("success read from "+filename)
+        return sta
+    except:
+        if show:
+            exstr = traceback.format_exc()
+            print(exstr)
+        print(filename+' reading failed')
+        
     
     
     

@@ -112,6 +112,29 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
             level_type=level_type_attr , time_type=time_type_attr, time_bounds=time_bounds_attr)
     return
 
+def set_griddata_coords_type(da,member_type=str,
+                            level_type=np.float32,
+                            dtime_type=np.int32,
+                            time_type=np.datetime64,
+                            lat_type=np.float32,
+                            lon_type=np.float32,
+                            ):
+    print(type(da))
+    try:
+        da.coords['member']=da.coords['member'].astype(member_type)
+        da.coords['level']=da.coords['level'].astype(level_type)
+        da.coords['dtime']=da.coords['dtime'].astype(dtime_type)
+        da.coords['time']=da.coords['time'].astype(time_type)
+        da.coords['lat']=da.coords['lat'].astype(lat_type)
+        da.coords['lon']=da.coords['lon'].astype(lon_type)
+    except Exception as ex:
+        print(ex)
+    return 
+
+    
+    
+    
+
 def xarray_to_griddata(xr0,
                        value_name=None, member_dim=None, level_dim=None, time_dim=None, dtime_dim=None, lat_dim=None,
                        lon_dim=None

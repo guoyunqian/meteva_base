@@ -63,7 +63,7 @@ def sta_data(df,columns = None,
 
     set_stadata_attrs(sta,units_attr = units_attr,model_var_attr = model_var_attr,dtime_units_attr = dtime_units_attr,
                       level_type_attr = level_type_attr,time_type_attr = time_type_attr,time_bounds_attr = time_bounds_attr,)
-    sta=converse_type(sta)
+    sta=converse_stadata_type(sta)
     return sta
 
 def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_attr =None,
@@ -259,14 +259,18 @@ def get_attrs(sta,
     
     return units,model,dtime_units,level_type,time_type,time_bounds
 
-def converse_type(sta):
-    sta['time']=pd.to_datetime(sta['time'])
-    sta['level']=sta['level'].astype('float32')
-    sta['dtime']=sta['dtime'].astype('int32')
-    sta['id']=sta['id'].astype('int32')
-    sta['lon']=sta['level'].astype('float32')
-    sta['lat']=sta['level'].astype('float32')
-    for column in sta:
-        if column  not in ['id','level','time','dtime','lon','lat']:
-            sta[column]=sta[column].astype('float32')
-    return None
+def converse_stadata_type(sta):
+    sta0=sta.copy()
+    sta0['time']=pd.to_datetime(sta0['time'])
+    sta0['level']=sta0['level'].astype('float32')
+    sta0['dtime']=sta0['dtime'].astype('int32')
+    sta0['id']=sta0['id'].astype('int32')
+    sta0['lon']=sta0['level'].astype('float32')
+    sta0['lat']=sta0['level'].astype('float32')
+    try:
+        for column in sta0:
+            if column  not in ['id','level','time','dtime','lon','lat']:
+                sta0[column]=sta0[column].astype('float32')
+    except Exception as ex:
+        print(ex)
+    return sta0

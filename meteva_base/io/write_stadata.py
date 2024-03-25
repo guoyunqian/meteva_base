@@ -72,6 +72,13 @@ def write_stadata_to_micaps3(sta0,save_path = "a.txt",creat_dir = False, type = 
                 df["data0"] = 0
         effectiveNum_str = "%." + '%d'% effectiveNum + "f"
         df.to_csv(save_path,mode='a',header=None,sep = "\t",float_format=effectiveNum_str,index = None)
+        if title is None:
+            df.to_csv(save_path,mode='a',header=None,sep = "\t",float_format=effectiveNum_str,index = None)
+        else:
+            if title.find("闪电")>=0 or title.find("light")>=0:
+                df.to_csv(save_path, mode='a', header=None, sep="  ", float_format=effectiveNum_str, index=None)
+            else:
+                df.to_csv(save_path, mode='a', header=None, sep="\t", float_format=effectiveNum_str, index=None)
         if show:
             print('成功输出至' + save_path)
         return True
@@ -323,7 +330,7 @@ def write_stadata_to_micaps2(sta_speed,sta_angle,save_path = "a.txt",creat_dir =
         print(exstr)
         return False
 
-def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
+def write_stadata_to_hdf(sta0, save_path, complevel=6, creat_dir = False):
     
     try:  
         dir = os.path.split(os.path.abspath(save_path))[0]
@@ -346,7 +353,7 @@ def write_stadata_to_hdf(sta0, save_path, creat_dir = False):
                           time_bounds_attr = time_bounds)
         
         sta['time']=pd.to_datetime(sta['time'])
-        sta.to_hdf(save_path,key='data')
+        sta.to_hdf(save_path,key='data',complevel=complevel)
         
         with h5py.File(save_path, 'a') as file:
             file.attrs['units']=sta.attrs['units']
