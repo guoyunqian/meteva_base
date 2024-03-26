@@ -2281,7 +2281,7 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
                 #                   level_type_attr = level_type
                 #                   ,time_type_attr = time_type,
                 #                   time_bounds_attr = time_bounds)
-                print('数据格式有误，请使用对应方法自行读取')
+                print('数据格式不符，请使用Pandas对应方法自行读取')
         if station is not None:
             sta = meteva_base.put_stadata_on_station(sta, station)
             

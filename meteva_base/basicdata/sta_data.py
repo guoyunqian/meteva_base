@@ -227,37 +227,41 @@ def get_attrs(sta,
               default_level_type='isobaric',
               default_time_type='UT',
               default_time_bounds=[0,0]):
-    if 'units' in sta.attrs:
-        units=sta.attrs['units']
-    else:
-        units=default_units
+    try:
+        if 'units' in sta.attrs:
+            units=str(sta.attrs['units'])
+        else:
+            units=default_units
+            
+        if 'model' in sta.attrs:
+            model=str(sta.attrs['model'])
+        else:
+            model=default_model
+            
+        if 'dtime_units' in sta.attrs:
+            dtime_units=sta.attrs['dtime_units']
+        else:
+            dtime_units=str(default_dtime_units)
+            
+        if 'level_type' in sta.attrs:
+            level_type=str(sta.attrs['level_type'])
+        else:
+            level_type=default_level_type
+            
+        if 'time_type' in sta.attrs:
+            time_type=str(sta.attrs['time_type'])
+        else:
+            time_type=default_time_type
+            
+        if 'time_bounds' in sta.attrs:
+            time_bounds=list(sta.attrs['time_bounds'])
+        else:
+            time_bounds=default_time_bounds
         
-    if 'model' in sta.attrs:
-        model=sta.attrs['model']
-    else:
-        model=default_model
-        
-    if 'dtime_units' in sta.attrs:
-        dtime_units=sta.attrs['dtime_units']
-    else:
-        dtime_units=default_dtime_units
-        
-    if 'level_type' in sta.attrs:
-        level_type=sta.attrs['level_type']
-    else:
-        level_type=default_level_type
-        
-    if 'time_type' in sta.attrs:
-        time_type=sta.attrs['time_type']
-    else:
-        time_type=default_time_type
-        
-    if 'time_bounds' in sta.attrs:
-        time_bounds=sta.attrs['time_bounds']
-    else:
-        time_bounds=default_time_bounds
+        return units,model,dtime_units,level_type,time_type,time_bounds
     
-    return units,model,dtime_units,level_type,time_type,time_bounds
+    except Exception as ex:
+        raise ex
 
 def converse_stadata_type(sta):
     sta0=sta.copy()
