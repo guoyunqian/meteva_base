@@ -159,7 +159,7 @@ def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,show = F
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
             return sta
         except:
             if show:
@@ -269,7 +269,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
                               level_type_attr = 'isobaric',
                               time_type_attr = 'UT',
                               time_bounds_attr = [0,0])
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
             return sta
 
         except:
@@ -372,7 +372,7 @@ def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
             return sta
         except:
             if show:
@@ -1056,7 +1056,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                           level_type_attr = level_type
                                           ,time_type_attr = time_type,
                                           time_bounds_attr = time_bounds)
-                        records=converse_stadata_type(records)
+                        records=converse_stadata_dtype(records)
                         return records
                     
                     else:
@@ -1070,7 +1070,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                           level_type_attr = level_type
                                           ,time_type_attr = time_type,
                                           time_bounds_attr = time_bounds)
-                        sta=converse_stadata_type(sta)
+                        sta=converse_stadata_dtype(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1117,7 +1117,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    sta=converse_stadata_type(sta)
+                    sta=converse_stadata_dtype(sta)
                     return sta
 
             else:
@@ -1177,7 +1177,7 @@ def read_stadata_from_gdsfile(filename,element_id = None,station = None, level=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    sta=converse_stadata_type(sta)
+                    sta=converse_stadata_dtype(sta)
                     return sta
         except:
             if show:
@@ -1335,7 +1335,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                                           level_type_attr = 'isobaric',
                                           time_type_attr = 'UT',
                                           time_bounds_attr = [0,0])
-                        sta=converse_stadata_type(sta)
+                        sta=converse_stadata_dtype(sta)
                         return sta
                 else:
                     sta = copy.deepcopy(station)
@@ -1385,7 +1385,7 @@ def read_stawind_from_gds(filename,station = None, level=None,time=None, dtime=N
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    sta=converse_stadata_type(sta)
+                    sta=converse_stadata_dtype(sta)
                     return sta
             else:
                 print(filename + " not exist")
@@ -1539,7 +1539,7 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                                       level_type_attr = level_type
                                       ,time_type_attr = time_type,
                                       time_bounds_attr = time_bounds)
-                    sta=converse_stadata_type(sta)
+                    sta=converse_stadata_dtype(sta)
                     return sta
             else:
                 sta = copy.deepcopy(station)
@@ -1589,7 +1589,7 @@ def read_stawind_from_gdsfile(filename,station = None, level=None,time=None, dti
                                   level_type_attr = level_type
                                   ,time_type_attr = time_type,
                                   time_bounds_attr = time_bounds)
-                sta=converse_stadata_type(sta)
+                sta=converse_stadata_dtype(sta)
                 return sta
         except:
             if show:
@@ -1909,7 +1909,7 @@ def read_stadata_from_gds_griddata_file(filename,station,level = None,time = Non
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
             return sta
         except:
             if show:
@@ -2010,7 +2010,7 @@ def read_stawind_from_gds_gridwind_file(filename,station,level = None,time = Non
                               level_type_attr = level_type
                               ,time_type_attr = time_type,
                               time_bounds_attr = time_bounds)
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
             return sta
         except:
             if show:
@@ -2059,7 +2059,7 @@ def read_stadata_from_cmadaas(dataCode,element,time,station = None,level=0,dtime
                       level_type_attr = level_type
                       ,time_type_attr = time_type,
                       time_bounds_attr = time_bounds)
-    sta=converse_stadata_type(sta)
+    sta=converse_stadata_dtype(sta)
     return sta
 
 
@@ -2103,7 +2103,7 @@ def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtim
         meteva_base.set_stadata_coords(sta,time = time1,dtime=dtime,level=level)
         if (station is not None):
             sta = meteva_base.put_stadata_on_station(sta, station)
-            sta=converse_stadata_type(sta)
+            sta=converse_stadata_dtype(sta)
         return sta
     except:
         if show:
@@ -2167,7 +2167,7 @@ def read_cyclone_trace(filename, id_cyclone,column=8,  data_name="data0",show = 
                           level_type_attr = level_type
                           ,time_type_attr = time_type,
                           time_bounds_attr = time_bounds)
-        sta2=converse_stadata_type(sta2)
+        sta2=converse_stadata_dtype(sta2)
         return sta2
     except:
         if show:
@@ -2214,7 +2214,7 @@ def read_stadata_from_hdf(filename, station=None, drop_same_id=True, show = Fals
             
         if drop_same_id:
              sta = sta.drop_duplicates(['id'])    
-        sta=converse_stadata_type(sta)
+        sta=converse_stadata_dtype(sta)
         if show:
             print("success read from "+filename)
         return sta
@@ -2225,7 +2225,7 @@ def read_stadata_from_hdf(filename, station=None, drop_same_id=True, show = Fals
         print(filename+'reading failed')
         
 
-def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = False):
+def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = False, sep = ','):
     """
     Parameters
     ----------
@@ -2252,7 +2252,7 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
             content=f.readlines()
     
             if content[0]=='attrs,values'+'\n':
-                sta=pd.read_csv(filename,skiprows=7)
+                sta=pd.read_csv(filename,skiprows=7,sep=sep)
                 
                 infos=content[1:7]
                 attrs=[]
@@ -2287,7 +2287,7 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
             
         if drop_same_id:
              sta = sta.drop_duplicates(['id'])  
-        sta=converse_stadata_type(sta)
+        sta=converse_stadata_dtype(sta)
         if show:
             print("success read from "+filename)
         return sta

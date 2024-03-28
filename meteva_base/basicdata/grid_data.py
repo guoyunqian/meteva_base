@@ -112,14 +112,13 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
             level_type=level_type_attr , time_type=time_type_attr, time_bounds=time_bounds_attr)
     return
 
-def set_griddata_coords_type(da,member_type=str,
+def set_griddata_coords_dtype(da,member_type=str,
                             level_type=np.float32,
                             dtime_type=np.int32,
                             time_type=np.datetime64,
                             lat_type=np.float32,
                             lon_type=np.float32,
                             ):
-    print(type(da))
     try:
         da.coords['member']=da.coords['member'].astype(member_type)
         da.coords['level']=da.coords['level'].astype(level_type)

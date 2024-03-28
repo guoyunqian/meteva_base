@@ -263,7 +263,7 @@ def get_attrs(sta,
     except Exception as ex:
         raise ex
 
-def converse_stadata_type(sta):
+def converse_stadata_dtype(sta):
     sta0=sta.copy()
     sta0['time']=pd.to_datetime(sta0['time'])
     sta0['level']=sta0['level'].astype('float32')
