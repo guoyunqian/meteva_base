@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import copy
+import meteva_base
 
 
 def checkout_griddata(grd, is_single=False, valid_val=[-1000, 1000, np.NaN]):
@@ -63,6 +64,9 @@ def _check_time_dtime_same(times0, dtimes0, times1, dtimes1):
         _ = len(dtimes1)
     except:
         dtimes1 = [dtimes1]
+    #统一为datetime格式
+    times0 = [meteva_base.tool.all_type_time_to_datetime(fn) for fn in times0]
+    times1 = [meteva_base.tool.all_type_time_to_datetime(fn) for fn in times1]
     ## alltime = time + dtime
     alltimes0 = []
     for time in times0:
@@ -80,6 +84,7 @@ def _check_time_dtime_same(times0, dtimes0, times1, dtimes1):
     else:
         match = False
     return match
+
 
 def checkout_griddata_same_coords(grd_list = [], is_time_match=False):
     """
@@ -116,24 +121,25 @@ def checkout_griddata_same_coords(grd_list = [], is_time_match=False):
 
 
 if __name__ == "__main__":
-    ## test1, time/dtime check
-    times0 = datetime(2024,3,1,8)
-    dtimes0 = [48,72,96]
-    times1 = datetime(2024,3,2,8)
-    dtimes1 = [24,48,72]
-    match = _check_time_dtime_same(times0, dtimes0, times1, dtimes1)
-    print('1:', match)
-    times2 =  [datetime(2024,3,2,8),datetime(2024,3,3,8),datetime(2024,3,4,8)]
-    dtimes2 = 24
-    match = _check_time_dtime_same(times0, dtimes0, times2, dtimes2)
-    print('2:', match)
+    # ## test1, time/dtime check
+    # times0 = datetime(2024,3,1,8)
+    # dtimes0 = [48,72,96]
+    # times1 = datetime(2024,3,2,8)
+    # dtimes1 = [24,48,72]
+    # match = _check_time_dtime_same(times0, dtimes0, times1, dtimes1)
+    # print('1:', match)
+    # times2 =  [datetime(2024,3,2,8),datetime(2024,3,3,8),datetime(2024,3,4,8)]
+    # dtimes2 = 24
+    # match = _check_time_dtime_same(times0, dtimes0, times2, dtimes2)
+    # print('2:', match)
 
     ## test2, time/dtime grd check
-    data = np.zeros((1,1,1,3,11,11),dtype=np.float64)
     import meteva_base as meb
-    print(data.shape)
+    data = np.zeros((1,1,1,3,11,11),dtype=np.float64)
     grid_info0 = meb.grid(glon=[90,100,1] , glat=[30,40,1], gtime=[datetime(2024,3,1,8)], dtime_list=[48, 72, 96])
-    grid_info1 = meb.grid(glon=[90,100,1] , glat=[30,40,1], gtime=[datetime(2024,3,2,8)], dtime_list=[24, 48, 72])
+    grid_info1 = meb.grid(glon=[90,100,1] , glat=[30,40,1], gtime=[datetime(2024,3,2,8)], dtime_list=[24, 48, 96])
     grd0 = meb.grid_data(grid=grid_info0, data=data)
     grd1 = meb.grid_data(grid=grid_info1, data=data)
-    print(grd0, grd0.data.dtype, grd1, grd1.data.dtype)
+    # print(grd0.time.values, grd0.dtime.values, grd0.data.dtype, grd1.data.dtype)
+    print(checkout_griddata_same_coords(grd_list = [grd0, grd1], is_time_match=False))
+    print(checkout_griddata_same_coords(grd_list = [grd0, grd1], is_time_match=True))
