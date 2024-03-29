@@ -42,16 +42,12 @@ def grid_data(grid,data=None):
     ## 属性赋值
     set_griddata_attrs(grd, units = grid.units, model_var = grid.model_var, dtime_units =grid.dtime_units,
             level_type=grid.level_type , time_type=grid.time_type, time_bounds=grid.time_bounds)
+    ## 坐标数据类型统一
+    set_griddata_coords_dtype(grd)
     return grd
 
 
 def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_list = None, member_list = None,
-                        units_attr      = None,
-                        model_var_attr  = None,
-                        dtime_units_attr= None,
-                        level_type_attr = None,
-                        time_type_attr  = None,
-                        time_bounds_attr= None,
                         ):
     """
     设置xarray的coords的一些属性
@@ -61,11 +57,6 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
     :param dtime:时效，默认为None
     :param member：要素，默认为None
     如果level不为None，并且grd的level维度上size = 1，则将level方向的坐标统一设置为传入的参数level,time,dtime,member一样类似处理。
-    :param units_attr:       属性，数据单位，string类型，默认为None
-    :param dtime_units_attr: 属性，预报时效，hour/minute
-    :param level_type_attr:  属性，高度单位类型，isobaric/attitude
-    :param time_type_attr:   属性，预报时效，UT/BT
-    :param time_bounds_attr: 属性，要素起止时间，list类型，默认为[0,0]。如1小时降水为[-1,0]
     :return:grd:返回一个设置好的coords的格点网格信息。
     """
     if name is not None:
@@ -107,9 +98,7 @@ def set_griddata_coords(grd,name = None,gtime = None,dtime_list = None,level_lis
             grd.coords["time"] = times
         else:
             print("gtime对应的时间序列长度和grid_data的time维度的长度不一致")
-    # 设置格点数据属性
-    set_griddata_attrs(grd, units = units_attr, model = model_var_attr, dtime_units =dtime_units_attr,
-            level_type=level_type_attr , time_type=time_type_attr, time_bounds=time_bounds_attr)
+    set_griddata_coords_dtype(grd)
     return
 
 def set_griddata_coords_dtype(da,member_type=str,
@@ -118,6 +107,7 @@ def set_griddata_coords_dtype(da,member_type=str,
                             time_type=np.datetime64,
                             lat_type=np.float32,
                             lon_type=np.float32,
+                            data_type = np.float32
                             ):
     try:
         da.coords['member']=da.coords['member'].astype(member_type)
@@ -126,11 +116,92 @@ def set_griddata_coords_dtype(da,member_type=str,
         da.coords['time']=da.coords['time'].astype(time_type)
         da.coords['lat']=da.coords['lat'].astype(lat_type)
         da.coords['lon']=da.coords['lon'].astype(lon_type)
+        da.data = da.data.astype(data_type)
     except Exception as ex:
         print(ex)
     return 
 
     
+
+def reset(grd):
+    lats = grd["lat"].values
+    if lats[0]>lats[1]:
+        lats = grd["lat"].values[::-1]
+        grd['lat'] = lats
+        dat = grd.values[:, :, :, :, ::-1, :]
+        grd.values = dat
+
+    lons = grd["lon"].values
+    if lons[0]>lons[1]:
+        lons = grd["lon"].values[::-1]
+        grd['lon'] = lons
+        dat = grd.values[:, :, :, :, :, ::-1]
+        grd.values = dat
+
+    return
+
+def get_griddata_attrs(da,
+              default_units='',
+              default_model='',
+              default_dtime_units='hour',
+              default_level_type='isobaric',
+              default_time_type='UT',
+              default_time_bounds=[0,0]):
+    try:
+        if 'units' in da.attrs:
+            units=str(da.attrs['units'])
+        else:
+            units=default_units
+            
+        if 'model' in da.attrs:
+            model=str(da.attrs['model'])
+        else:
+            model=default_model
+            
+        if 'dtime_units' in da.attrs:
+            dtime_units=str(da.attrs['dtime_units'])
+        else:
+            dtime_units=default_dtime_units
+            
+        if 'level_type' in da.attrs:
+            level_type=str(da.attrs['level_type'])
+        else:
+            level_type=default_level_type
+            
+        if 'time_type' in da.attrs:
+            time_type=str(da.attrs['time_type'])
+        else:
+            time_type=default_time_type
+            
+        if 'time_bounds' in da.attrs:
+            time_bounds=list(da.attrs['time_bounds'])
+        else:
+            time_bounds=default_time_bounds
+        
+        return units,model,dtime_units,level_type,time_type,time_bounds
+    
+    except Exception as ex:
+        raise ex
+
+def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
+            level_type=None ,time_type=None , time_bounds=None):
+    """
+    :param units_attr:       属性，数据单位，string类型，默认为None
+    :param model_var:        属性，数据来源(模式及要素)，string类型，默认为None
+    :param dtime_units_attr: 属性，预报时效，hour/minute
+    :param level_type_attr:  属性，高度单位类型，isobaric/attitude
+    :param time_type_attr:   属性，预报时效，UT/BT
+    :param time_bounds_attr: 属性，要素起止时间，list类型，默认为[0,0]。如1小时降水为[-1,0]
+    """
+    if grd.attrs is None: grd.attrs = {}
+    if units is not None       : grd.attrs['units'] = units
+    if model_var is not None   : grd.attrs['model_var'] = model_var
+    if dtime_units is not None : grd.attrs['dtime_units'] = dtime_units
+    if level_type is not None  : grd.attrs['level_type'] = level_type
+    if time_type is not None   : grd.attrs['time_type'] = time_type
+    if time_bounds is not None : grd.attrs['time_bounds'] = time_bounds
+    return None
+
     
     
 
@@ -862,77 +933,6 @@ def DataArray_to_grd(dataArray,member = None,level = None,time = None,dtime = No
 
 
 
-
-def reset(grd):
-    lats = grd["lat"].values
-    if lats[0]>lats[1]:
-        lats = grd["lat"].values[::-1]
-        grd['lat'] = lats
-        dat = grd.values[:, :, :, :, ::-1, :]
-        grd.values = dat
-
-    lons = grd["lon"].values
-    if lons[0]>lons[1]:
-        lons = grd["lon"].values[::-1]
-        grd['lon'] = lons
-        dat = grd.values[:, :, :, :, :, ::-1]
-        grd.values = dat
-
-    return
-
-def get_attrs(da,
-              default_units='',
-              default_model='',
-              default_dtime_units='hour',
-              default_level_type='isobaric',
-              default_time_type='UT',
-              default_time_bounds=[0,0]):
-    try:
-        if 'units' in da.attrs:
-            units=str(da.attrs['units'])
-        else:
-            units=default_units
-            
-        if 'model' in da.attrs:
-            model=str(da.attrs['model'])
-        else:
-            model=default_model
-            
-        if 'dtime_units' in da.attrs:
-            dtime_units=str(da.attrs['dtime_units'])
-        else:
-            dtime_units=default_dtime_units
-            
-        if 'level_type' in da.attrs:
-            level_type=str(da.attrs['level_type'])
-        else:
-            level_type=default_level_type
-            
-        if 'time_type' in da.attrs:
-            time_type=str(da.attrs['time_type'])
-        else:
-            time_type=default_time_type
-            
-        if 'time_bounds' in da.attrs:
-            time_bounds=list(da.attrs['time_bounds'])
-        else:
-            time_bounds=default_time_bounds
-        
-        return units,model,dtime_units,level_type,time_type,time_bounds
-    
-    except Exception as ex:
-        raise ex
-
-def set_griddata_attrs(grd, units = None, model = None, dtime_units =None,
-            level_type=None ,time_type=None , time_bounds=None):
-    if grd.attrs is None: grd.attrs = {}
-    if units is not None       : grd.attrs['units'] = units
-    if model is not None   : grd.attrs['model'] = model
-    if dtime_units is not None : grd.attrs['dtime_units'] = dtime_units
-    if level_type is not None  : grd.attrs['level_type'] = level_type
-    if time_type is not None   : grd.attrs['time_type'] = time_type
-    if time_bounds is not None : grd.attrs['time_bounds'] = time_bounds
-    return 
 
 
 

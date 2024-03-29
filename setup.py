@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(  
     name = 'meteva_base',  
-    version = '0.1.7',
+    version = '0.1.8',
     description = 'base classes and functions of generally meteorogical usage, like Basic_class/IO/calculation/plot .etc',  
     long_description=long_description,
     long_description_content_type = None,
@@ -33,7 +33,7 @@ setup(
     include_package_data=True,
     exclude_package_data={'': ['.gitignore']},
 
-    url = 'https://github.com/nmcdev/nimm',
+    url = 'https://github.com/guoyunqian/meteva_base',
     install_requires=[
                       'numpy>=1.12.1',
                       'pandas>=1.0.4',

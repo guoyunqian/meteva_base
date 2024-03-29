@@ -66,9 +66,9 @@ def sta_data(df,columns = None,
     sta=converse_stadata_type(sta)
     return sta
 
-def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_attr =None,
-             level_type_attr = None,time_type_attr = None,
-             time_bounds_attr = None):
+def set_stadata_attrs(sta, units = None, model_var = None, dtime_units =None,
+             level_type = None, time_type = None,
+             time_bounds = None):
 
     if sta.attrs is None: sta.attrs = {}
     # if dtime_units is not None:sta.attrs["dtime_units"] = dtime_units
@@ -80,12 +80,12 @@ def set_stadata_attrs(sta, units_attr = None,model_var_attr = None,dtime_units_a
     # if valid_time is not None:sta.attrs["valid_time"] = valid_time
     # if data_start_columns is not None:sta.attrs["data_start_columns"] = data_start_columns
     
-    if units_attr is not None:sta.attrs["units"] = units_attr
-    if model_var_attr is not None:sta.attrs["model"] = model_var_attr
-    if dtime_units_attr is not None: sta.attrs["dtime_units"] =dtime_units_attr
-    if level_type_attr is not None: sta.attrs["level_type"] = level_type_attr
-    if time_type_attr is not None:sta.attrs["time_type"] = time_type_attr
-    if time_bounds_attr is not None:sta.attrs["time_bounds"] = time_bounds_attr
+    if units is not None: sta.attrs["units"] = units
+    if model_var is not None: sta.attrs["model_var"] = model_var
+    if dtime_units is not None: sta.attrs["dtime_units"] =dtime_units
+    if level_type is not None: sta.attrs["level_type"] = level_type
+    if time_type is not None: sta.attrs["time_type"] = time_type
+    if time_bounds is not None: sta.attrs["time_bounds"] = time_bounds
 
 
 def get_undim_data_names(sta):
@@ -220,7 +220,7 @@ def reset_id(sta):
             sta['id'] = int_id
     return
 
-def get_attrs(sta,
+def get_stadata_attrs(sta,
               default_units='',
               default_model='',
               default_dtime_units='hour',
