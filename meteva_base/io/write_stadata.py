@@ -344,20 +344,20 @@ def write_stadata_to_hdf(sta0, save_path, complevel=6, creat_dir = False):
                 
         
         sta=copy.deepcopy(sta0)
-        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
-        set_stadata_attrs(sta,units_attr = units,
-                          model_var_attr = model,
-                          dtime_units_attr = dtime_units,
-                          level_type_attr = level_type
-                          ,time_type_attr = time_type,
-                          time_bounds_attr = time_bounds)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
+        set_stadata_attrs(sta,units = units,
+                          model_var = model,
+                          dtime_units = dtime_units,
+                          level_type = level_type
+                          ,time_type = time_type,
+                          time_bounds = time_bounds)
         
         sta['time']=pd.to_datetime(sta['time'])
         sta.to_hdf(save_path,key='data',complevel=complevel)
         
         with h5py.File(save_path, 'a') as file:
             file.attrs['units']=sta.attrs['units']
-            file.attrs['model']=sta.attrs['model']
+            file.attrs['model_var']=sta.attrs['model_var']
             file.attrs['dtime_units']=sta.attrs['dtime_units']
             file.attrs['level_type']=sta.attrs['level_type']
             file.attrs['time_type']=sta.attrs['time_type']
@@ -380,13 +380,13 @@ def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False,sep=
                 meteva_base.tool.path_tools.creat_path(save_path)
         
         sta=copy.deepcopy(sta0)
-        units,model,dtime_units,level_type,time_type,time_bounds=get_attrs(sta)
-        set_stadata_attrs(sta,units_attr = units,
-                          model_var_attr = model,
-                          dtime_units_attr = dtime_units,
-                          level_type_attr = level_type
-                          ,time_type_attr = time_type,
-                          time_bounds_attr = time_bounds)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
+        set_stadata_attrs(sta,units = units,
+                          model_var = model,
+                          dtime_units = dtime_units,
+                          level_type = level_type
+                          ,time_type = time_type,
+                          time_bounds = time_bounds)
         sta['time']=pd.to_datetime(sta['time'])
         sta.to_csv(save_path,float_format='%.{e}f'.format(e=effective_num),index=False,sep=sep)
         
