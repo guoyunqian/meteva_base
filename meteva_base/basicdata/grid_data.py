@@ -119,7 +119,7 @@ def set_griddata_coords_dtype(da,member_type=str,
         da.data = da.data.astype(data_type)
     except Exception as ex:
         print(ex)
-    return 
+    return None
 
     
 
