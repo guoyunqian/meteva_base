@@ -368,8 +368,11 @@ def write_stadata_to_hdf(sta0, save_path, complevel=6, creat_dir = False):
         print(exstr)
         return False
 
-def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False,sep= ','):
-    
+def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False,sep = None):
+    if sep==None:
+        sep_use=','
+    else:
+        sep_use=sep
     try:
         dir = os.path.split(os.path.abspath(save_path))[0]
         if not os.path.isdir(dir):
@@ -388,7 +391,7 @@ def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False,sep=
                           ,time_type = time_type,
                           time_bounds = time_bounds)
         sta['time']=pd.to_datetime(sta['time'])
-        sta.to_csv(save_path,float_format='%.{e}f'.format(e=effective_num),index=False,sep=sep)
+        sta.to_csv(save_path,float_format='%.{e}f'.format(e=effective_num),index=False,sep=sep_use)
         
         attrs_list=''
         

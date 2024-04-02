@@ -205,7 +205,7 @@ def get_grid_of_data(grid_data0):
     glat = [get_true_value(lats[0]), get_true_value(lats[-1]), dlat]
 
     units_attr       = grid_data0.attrs['units']
-    model_var_attr   = grid_data0.attrs['model']
+    model_var_attr   = grid_data0.attrs['model_var']
     dtime_units_attr = grid_data0.attrs['dtime_units']
     level_type_attr  = grid_data0.attrs['level_type']
     time_type_attr   = grid_data0.attrs['time_type']
