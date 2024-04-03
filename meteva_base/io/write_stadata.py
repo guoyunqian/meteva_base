@@ -362,6 +362,7 @@ def write_stadata_to_hdf(sta0, save_path, complevel=6, creat_dir = False):
             file.attrs['level_type']=sta.attrs['level_type']
             file.attrs['time_type']=sta.attrs['time_type']
             file.attrs['time_bounds']=sta.attrs['time_bounds']
+        return True
                 
     except:
         exstr = traceback.format_exc()
@@ -401,13 +402,7 @@ def write_stadata_to_csv(sta0, save_path,effective_num=2, creat_dir = False,sep 
             for key,value in sta.attrs.items():
                 attrs_list+=(str(key)+','+'"{value}"'.format(value=value)+'\n')
             f.write('attrs,values'+'\n'+str(attrs_list)+content)
-            
-        # attrs_list=pd.DataFrame(attrs_list,columns=['attrs','values'])
-        # sta=pd.concat([sta,attrs_list])
-
-        
-        
-
+        return True
     except:
         exstr = traceback.format_exc()
         print(exstr)

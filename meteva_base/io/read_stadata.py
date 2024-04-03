@@ -2231,6 +2231,8 @@ def read_stadata_from_hdf(filename, station=None, drop_same_id=True, show = Fals
             print(exstr)
         print(filename+'reading failed')
         
+        return None
+        
 
 def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = False, sep = None):
     """
@@ -2261,7 +2263,7 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
     try:
         with open(filename,'r+') as f:
             content=f.readlines()
-        
+            print(content[0])
             if content[0]=='attrs,values'+'\n':
                 sta=pd.read_csv(filename,skiprows=7,sep=sep_use)
                 
@@ -2276,7 +2278,14 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
                     value=info.split(',',1)[1]
                     values.append(value)
                 attrs_dict = dict(zip(attrs, values))
-                units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
+                print(attrs_dict)
+                
+                units = attrs_dict['units']
+                model = attrs_dict['model_var']
+                dtime_units = attrs_dict['dtime_units']
+                level_type = attrs_dict['level_type']
+                time_type = attrs_dict['time_type']
+                time_bounds = attrs_dict['time_bounds']
                 set_stadata_attrs(sta,units = units,
                                   model_var = model,
                                   dtime_units = dtime_units,
@@ -2284,15 +2293,16 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
                                   ,time_type = time_type,
                                   time_bounds = time_bounds)
             else:
-                # sta=pd.read_csv(filename)
-                # units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
-                # set_stadata_attrs(sta,units_attr = units,
-                #                   model_var_attr = model,
-                #                   dtime_units_attr = dtime_units,
-                #                   level_type_attr = level_type
-                #                   ,time_type_attr = time_type,
-                #                   time_bounds_attr = time_bounds)
-                print('数据格式不符，请使用Pandas对应方法自行读取')
+                sta=pd.read_csv(filename)
+                units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
+                set_stadata_attrs(sta,units = units,
+                                  model_var = model,
+                                  dtime_units = dtime_units,
+                                  level_type = level_type
+                                  ,time_type = time_type,
+                                  time_bounds = time_bounds)
+                print('站点数据缺属性说明，已自动赋值默认值，使用需谨慎')
+
         if station is not None:
             sta = meteva_base.put_stadata_on_station(sta, station)
             
@@ -2307,6 +2317,8 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
             exstr = traceback.format_exc()
             print(exstr)
         print(filename+' reading failed')
+        print('数据格式不符，请使用Pandas对应方法自行读取')
+        return None
         
     
     
