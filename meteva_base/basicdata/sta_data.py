@@ -63,7 +63,7 @@ def sta_data(df,columns = None,
 
     set_stadata_attrs(sta,units_attr = units_attr,model_var_attr = model_var_attr,dtime_units_attr = dtime_units_attr,
                       level_type_attr = level_type_attr,time_type_attr = time_type_attr,time_bounds_attr = time_bounds_attr,)
-    sta=converse_stadata_dtype(sta)
+    sta=set_stadata_coords_dtype(sta)
     return sta
 
 def set_stadata_attrs(sta, units = None, model_var = None, dtime_units =None,
