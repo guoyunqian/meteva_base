@@ -127,7 +127,7 @@ def read_sta_alt_from_micaps3(filename, station=None, drop_same_id=True,show = F
             if drop_same_id:
                 sta1 = sta1.drop_duplicates(['id'])
             # sta = bd.sta_data(sta1)
-            sta = meteva_base.basicdata.sta_data(sta1)
+            sta = meteva_base.basicdata.sta_data(sta1, is_dtype_conv=False)#不强制数据类型统一
             # print(sta)
 
             y2 = ""
@@ -232,7 +232,7 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
             if drop_same_id:
                 sta1 = sta1.drop_duplicates(['id'])
             # sta = bd.sta_data(sta1)
-            sta = meteva_base.basicdata.sta_data(sta1)
+            sta = meteva_base.basicdata.sta_data(sta1, is_dtype_conv=False)
             #print(sta)
 
             y2 = ""
@@ -271,8 +271,8 @@ def read_stadata_from_micaps3(filename, station=None,  level=None,time=None, dti
                               level_type = level_type
                               ,time_type = time_type,
                               time_bounds = time_bounds)
+            sta=set_stadata_coords_dtype(sta)
             return sta
-
         except:
             if show:
                 exstr = traceback.format_exc()
@@ -342,7 +342,7 @@ def read_stadata_from_txt(filename, columns, member_list,skiprows=0,level = None
             #             a = sta1.loc[i, 'lat'] // 100 + (a % 100) / 60
             #             sta1.loc[i, 'lat'] = a
             # sta = bd.sta_data(sta1)
-            sta = meteva_base.basicdata.sta_data(sta1)
+            sta = meteva_base.basicdata.sta_data(sta1, is_dtype_conv=False)
             if drop_same_id:
                 sta = sta.drop_duplicates(['id'])
 
@@ -444,7 +444,7 @@ def read_stadata_from_sevp(filename, element_id,level=None,time=None,data_name =
             df.columns = ["id", "lon", "lat", "dtime",data_name]
             df["time"] = time_file
             df["level"] = level
-            sta = meteva_base.sta_data(df)
+            sta = meteva_base.sta_data(df, is_dtype_conv=False)
             sta.attrs = {}
             units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(sta)
             set_stadata_attrs(sta,units = units,
@@ -486,7 +486,7 @@ def read_stadata_from_micaps1_2_8(filename, column, station=None, level=None,tim
             file = open(filename,encoding=encoding)
             sta1 = pd.read_csv(file, skiprows=2, sep="\s+", header=None, usecols=[0, 1, 2,  column])
             sta1.columns = ['id', 'lon', 'lat', data_name]
-            sta2 = meteva_base.basicdata.sta_data(sta1)
+            sta2 = meteva_base.basicdata.sta_data(sta1, is_dtype_conv=False)
             if drop_same_id:
                 sta2 = sta2.drop_duplicates(['id'])
             strs0 = heads[0].split()
@@ -575,7 +575,7 @@ def read_stadata_from_micaps41_lightning(filename, column, level=0,data_name='da
             sta1['time'] = pd.to_datetime(sta1['time'],format="%Y%m%d%H%M%S%f")
             if not keep_millisecond:
                 sta1['time'] = sta1['time'].dt.ceil("S")
-            sta2 = meteva_base.basicdata.sta_data(sta1)
+            sta2 = meteva_base.basicdata.sta_data(sta1, is_dtype_conv=False)
 
             sta2.loc[:, "level"] = level
             sta2.loc[:, "dtime"] = 0
@@ -1822,7 +1822,7 @@ def read_stadata_from_micaps16(filename,level = None,time= None,dtime = None,dat
                 dat[:,2] = row2[:]
             dat[:,3] = row3[:]
             station = pd.DataFrame(dat, columns=['id','lon', 'lat', data_name])
-            station = meteva_base.sta_data(station)
+            station = meteva_base.sta_data(station, is_dtype_conv=False)
             meteva_base.set_stadata_coords(station,level=level,time= time,dtime = dtime)
             station.attrs = {}
             units,model,dtime_units,level_type,time_type,time_bounds=get_stadata_attrs(station)
@@ -2096,7 +2096,7 @@ def read_stadata_from_cimiss(dataCode,element,time,station = None,level = 0,dtim
         data1 =df.iloc[0,3]
         if isinstance(data1,str):
             df[element] = df[element].astype("float")
-        sta = meteva_base.sta_data(df,columns=["id","lon","lat",element])
+        sta = meteva_base.sta_data(df,columns=["id","lon","lat",element], is_dtype_conv=False)
 
         #sta.time = pd.to_datetime(sta.time)
         #sta.level = sta.level.astype(np.int16)

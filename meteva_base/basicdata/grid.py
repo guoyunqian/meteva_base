@@ -59,24 +59,24 @@ class grid:
             self.etime = np.datetime64('2020-01-01T00:00:00.000000')
             self.dtime_int = 1
             self.dtime_type = "h"
-            self.times = pd.date_range(self.stime, self.etime, freq=str(self.dtime_int)+self.dtime_type ).to_pydatetime()#[datetime]
+            self.gtime = pd.date_range(self.stime, self.etime, freq=str(self.dtime_int)+self.dtime_type ).to_pydatetime()#[datetime]
         else:
             try:
                 _ = len(gtime)
             except:
                 gtime = [gtime]
             if len(gtime) == 1:
-                self.times = meteva_base.basicdata.utils.get_time_input_single(gtime)
+                self.gtime = meteva_base.basicdata.utils.get_time_input_single(gtime)
 
             elif len(gtime) ==3 and isinstance(gtime[2],str) and len(gtime[2])<=5:
-                self.times = meteva_base.basicdata.utils.get_time_input_three(gtime)
+                self.gtime = meteva_base.basicdata.utils.get_time_input_three(gtime)
 
             else:
                 if isinstance(gtime[0], datetime.datetime):
-                    self.times = gtime
+                    self.gtime = gtime
                 else:
-                    self.times = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]#[datetime]
-        self.stime_str = self.times[0].strftime("%y%m%d%H%M")
+                    self.gtime = [meteva_base.all_type_time_to_datetime(dt) for dt in gtime]#[datetime]
+        self.stime_str = self.gtime[0].strftime("%y%m%d%H%M")
         # except Exception as err:
             # print('gtime ERROR: ',err)
         ############################################################################
@@ -156,7 +156,7 @@ class grid:
         grid_str += "members:" + str(self.members) +"\n"
         grid_str += "levels:" + str(self.levels) + "\n"
         # grid_str += "gtime:" + str([self.stime_str,self.etime_str,self.dtime_str]) + "\n"
-        grid_str += "gtime:" + str(self.times)  +"\n"
+        grid_str += "gtime:" + str(self.stime_str)  +"\n"
         grid_str += "dtimes:" + str(self.dtimes)  +"\n"
         grid_str += "glon:" + str(self.glon) + "\n"
         grid_str += "glat:" + str(self.glat) + "\n"
@@ -167,6 +167,8 @@ class grid:
         grid_str += "level_type:" + str(self.level_type) + "\n"
         grid_str += "time_type:" + str(self.time_type) + "\n"
         grid_str += "time_bounds:" + str(self.time_bounds) + "\n"
+
+        grid_str += "TEST!"
         return grid_str
 
 def get_true_value(value):

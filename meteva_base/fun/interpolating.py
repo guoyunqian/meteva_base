@@ -734,3 +734,12 @@ def cubic_f(n, dx):
         return -(dx + 1) * dx * (dx - 2) / 2
     else:
         return (dx + 1) * dx * (dx - 1) / 6
+
+
+
+if __name__ == "__main__":
+    import meteva_base as meb0
+    grd = meb0.read_griddata_from_nc(r"H:\temp\202301_zhinengwangge\20230206_unitycode\git\24042200.024.nc")
+    sta0 = meb0.read_stadata_from_micaps3(r"\\10.20.90.107\Observation\R24_national\sfc\20240423\h24_202404230000.m3",show=True)
+    sta1 = meb0.interp_gs_linear(grd, sta0)
+    print(sta0)

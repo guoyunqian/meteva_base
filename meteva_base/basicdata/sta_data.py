@@ -14,7 +14,8 @@ def sta_data(df,columns = None,
              dtime_units_attr= 'hour',# hour/minite
              level_type_attr = 'isobaric',# isobaric/attitude
              time_type_attr  = 'UT',#UT/BT
-             time_bounds_attr= [0,0],#数据起止时间
+             time_bounds_attr= [0,0],#数据起止时间,
+             is_dtype_conv   = True
              ):
     '''
     sta_data() 对数据进行格式化成为固定格式
@@ -61,9 +62,10 @@ def sta_data(df,columns = None,
         #    sta.iloc[:,i] = (sta.values[:,i]).astype(np.float32)
         pass
 
-    set_stadata_attrs(sta,units_attr = units_attr,model_var_attr = model_var_attr,dtime_units_attr = dtime_units_attr,
-                      level_type_attr = level_type_attr,time_type_attr = time_type_attr,time_bounds_attr = time_bounds_attr,)
-    sta=set_stadata_coords_dtype(sta)
+    set_stadata_attrs(sta,units = units_attr, model_var = model_var_attr, dtime_units = dtime_units_attr,
+                      level_type = level_type_attr, time_type = time_type_attr, time_bounds = time_bounds_attr)
+    if is_dtype_conv:
+        sta=set_stadata_coords_dtype(sta)
     return sta
 
 def set_stadata_attrs(sta, units = None, model_var = None, dtime_units =None,
@@ -265,16 +267,17 @@ def get_stadata_attrs(sta,
 
 def set_stadata_coords_dtype(sta):
     sta0=sta.copy()
-    sta0['time']=pd.to_datetime(sta0['time'])
-    sta0['level']=sta0['level'].astype('float32')
-    sta0['dtime']=sta0['dtime'].astype('int32')
-    sta0['id']=sta0['id'].astype('int32')
-    sta0['lon']=sta0['level'].astype('float32')
-    sta0['lat']=sta0['level'].astype('float32')
     try:
+        sta0['time']=pd.to_datetime(sta0['time'])
+        sta0['level']=sta0['level'].astype('float32')
+        sta0['dtime']=sta0['dtime'].astype('int16')
+        sta0['id']=sta0['id'].astype('int32')
+        sta0['lon']=sta0['lon'].astype('float64')
+        sta0['lat']=sta0['lat'].astype('float64')
         for column in sta0:
             if column  not in ['id','level','time','dtime','lon','lat']:
                 sta0[column]=sta0[column].astype('float32')
     except Exception as ex:
+        print("ERROR in stadata dtype convert!")
         print(ex)
     return sta0

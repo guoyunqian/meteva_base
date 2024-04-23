@@ -18,7 +18,7 @@ def grid_data(grid,data=None):
     # 通过起始经纬度和格距计算经纬度格点数
     lon = np.arange(nlon) * dlon + slon
     lat = np.arange(nlat) * dlat + slat
-    times = pd.DatetimeIndex(grid.times)
+    times = pd.DatetimeIndex(grid.gtime)
     ntime = len(times)
     # 根据timedelta的格式，算出ndt次数和gds时效列表
 
