@@ -184,7 +184,10 @@ def get_griddata_attrs(da,
         raise ex
 
 def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
-            level_type=None ,time_type=None , time_bounds=None):
+            level_type=None ,time_type=None , time_bounds=None,
+            is_default=False,
+            default_attr={'units':'', 'model_var':'', 'dtime_units':'hour', 'level_type':'isobaric', 'time_type':'UT', 'time_bounds':[0,0],}
+            ):
     """
     :param units_attr:       属性，数据单位，string类型，默认为None
     :param model_var:        属性，数据来源(模式及要素)，string类型，默认为None
@@ -192,17 +195,55 @@ def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
     :param level_type_attr:  属性，高度单位类型，isobaric/attitude
     :param time_type_attr:   属性，预报时效，UT/BT
     :param time_bounds_attr: 属性，要素起止时间，list类型，默认为[0,0]。如1小时降水为[-1,0]
+    :is_default:             属性赋值方式，True: 属性为None则赋值属性为默认值； False:属性为None则不赋值该属性
+    :default_attr:           默认属性值, is_default为True时生效
     """
     if grd.attrs is None: grd.attrs = {}
-    if units is not None       : grd.attrs['units'] = units
-    if model_var is not None   : grd.attrs['model_var'] = model_var
-    if dtime_units is not None : grd.attrs['dtime_units'] = dtime_units
-    if level_type is not None  : grd.attrs['level_type'] = level_type
-    if time_type is not None   : grd.attrs['time_type'] = time_type
-    if time_bounds is not None : grd.attrs['time_bounds'] = time_bounds
+
+    if units is not None       : 
+        grd.attrs['units'] = units
+    else:
+        if is_default:
+            grd.attrs['units'] = default_attr['units']
+
+    if model_var is not None   : 
+        grd.attrs['model_var'] = model_var
+    else:
+        if is_default:
+            grd.attrs['model_var'] = default_attr['model_var']
+
+    if dtime_units is not None : 
+        grd.attrs['dtime_units'] = dtime_units
+    else:
+        if is_default:
+            grd.attrs['dtime_units'] = default_attr['dtime_units']
+
+    if level_type is not None  : 
+        grd.attrs['level_type'] = level_type
+    else:
+        if is_default:
+            grd.attrs['level_type'] = default_attr['level_type']
+
+    if time_type is not None   : 
+        grd.attrs['time_type'] = time_type
+    else:
+        if is_default:
+            grd.attrs['time_type'] = default_attr['time_type']
+
+    if time_bounds is not None : 
+        grd.attrs['time_bounds'] = time_bounds
+    else:
+        if is_default:
+            grd.attrs['time_bounds'] = default_attr['time_bounds']
     return None
 
-    
+
+
+def set_griddata_attrs_same(grd, grd0):
+    units,model,dtime_units,level_type,time_type,time_bounds = get_griddata_attrs(grd0)
+    set_griddata_attrs(grd, units = units, model_var = model, dtime_units =dtime_units,
+            level_type=level_type ,time_type=time_type , time_bounds=time_bounds)
+    return None
     
 
 def xarray_to_griddata(xr0,

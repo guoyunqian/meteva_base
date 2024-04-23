@@ -265,18 +265,25 @@ def get_stadata_attrs(sta,
     except Exception as ex:
         raise ex
 
-def set_stadata_coords_dtype(sta):
+def set_stadata_coords_dtype(sta,
+                            level_type=np.int16,
+                            dtime_type=np.int16,
+                            id_type=np.int32,
+                            lat_type=np.float64,
+                            lon_type=np.float64,
+                            data_type = np.float32
+    ):
     sta0=sta.copy()
     try:
+        sta0['level']=sta0['level'].astype(level_type)
         sta0['time']=pd.to_datetime(sta0['time'])
-        sta0['level']=sta0['level'].astype('float32')
-        sta0['dtime']=sta0['dtime'].astype('int16')
-        sta0['id']=sta0['id'].astype('int32')
-        sta0['lon']=sta0['lon'].astype('float64')
-        sta0['lat']=sta0['lat'].astype('float64')
+        sta0['dtime']=sta0['dtime'].astype(dtime_type)
+        sta0['id']=sta0['id'].astype(id_type)
+        sta0['lon']=sta0['lon'].astype(lon_type)
+        sta0['lat']=sta0['lat'].astype(lat_type)
         for column in sta0:
             if column  not in ['id','level','time','dtime','lon','lat']:
-                sta0[column]=sta0[column].astype('float32')
+                sta0[column]=sta0[column].astype(data_type)
     except Exception as ex:
         print("ERROR in stadata dtype convert!")
         print(ex)

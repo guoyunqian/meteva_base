@@ -558,7 +558,7 @@ def interp_gg_linear(grd, grid,used_coords = "xy",outer_value = None):
             grid_new0 = meteva_base.get_inner_grid(grid,grid0)
             grid_new = meteva_base.grid(grid_new0.glon, grid_new0.glat, grid0.gtime, grid0.dtimes, grid0.levels, grid0.members)
         else:
-            grid_new = meteva_base.grid(grid.glon, grid.glat, grid0.times, grid0.dtimes, grid0.levels, grid0.members)
+            grid_new = meteva_base.grid(grid.glon, grid.glat, grid0.gtime, grid0.dtimes, grid0.levels, grid0.members)
         grd_new = meteva_base.grid_data(grid_new)
         for i in range(len(levels)):
             for j in range(len(times)):
@@ -737,9 +737,9 @@ def cubic_f(n, dx):
 
 
 
-if __name__ == "__main__":
-    import meteva_base as meb0
-    grd = meb0.read_griddata_from_nc(r"H:\temp\202301_zhinengwangge\20230206_unitycode\git\24042200.024.nc")
-    sta0 = meb0.read_stadata_from_micaps3(r"\\10.20.90.107\Observation\R24_national\sfc\20240423\h24_202404230000.m3",show=True)
-    sta1 = meb0.interp_gs_linear(grd, sta0)
-    print(sta0)
+# if __name__ == "__main__":
+#     import meteva_base as meb0
+#     grd = meb0.read_griddata_from_nc(r"H:\temp\202301_zhinengwangge\20230206_unitycode\git\24042200.024.nc")
+#     sta0 = meb0.read_stadata_from_micaps3(r"\\10.20.90.107\Observation\R24_national\sfc\20240423\h24_202404230000.m3",show=True)
+#     sta1 = meb0.interp_gs_linear(grd, sta0)
+#     print(sta0)

@@ -167,8 +167,6 @@ class grid:
         grid_str += "level_type:" + str(self.level_type) + "\n"
         grid_str += "time_type:" + str(self.time_type) + "\n"
         grid_str += "time_bounds:" + str(self.time_bounds) + "\n"
-
-        grid_str += "TEST!"
         return grid_str
 
 def get_true_value(value):
@@ -206,20 +204,21 @@ def get_grid_of_data(grid_data0):
     dlat = get_true_value(lats[1] - lats[0])
     glat = [get_true_value(lats[0]), get_true_value(lats[-1]), dlat]
 
-    units_attr       = grid_data0.attrs['units']
-    model_var_attr   = grid_data0.attrs['model_var']
-    dtime_units_attr = grid_data0.attrs['dtime_units']
-    level_type_attr  = grid_data0.attrs['level_type']
-    time_type_attr   = grid_data0.attrs['time_type']
-    time_bounds_attr = grid_data0.attrs['time_bounds']
+    # units_attr       = grid_data0.attrs['units']
+    # model_var_attr   = grid_data0.attrs['model_var']
+    # dtime_units_attr = grid_data0.attrs['dtime_units']
+    # level_type_attr  = grid_data0.attrs['level_type']
+    # time_type_attr   = grid_data0.attrs['time_type']
+    # time_bounds_attr = grid_data0.attrs['time_bounds']
+    units,model,dtime_units,level_type,time_type,time_bounds = meteva_base.basicdata.get_griddata_attrs(grid_data0)
 
     grid01 = grid(glon, glat, gtime, gdt, level_list, member_list,
-                        units_attr      = units_attr,
-                        model_var_attr  = model_var_attr,
-                        dtime_units_attr= dtime_units_attr,
-                        level_type_attr = level_type_attr,
-                        time_type_attr  = time_type_attr,
-                        time_bounds_attr= time_bounds_attr)
+                        units_attr      = units,
+                        model_var_attr  = model,
+                        dtime_units_attr= dtime_units,
+                        level_type_attr = level_type,
+                        time_type_attr  = time_type,
+                        time_bounds_attr= time_bounds)
     return grid01
 
 
