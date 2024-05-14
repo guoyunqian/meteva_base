@@ -99,16 +99,16 @@ def checkout_griddata_same_coords(grd_list = [], is_time_match=False):
             match = (
                 (grd.member.values == ref.member.values ).all()
                 and (grd.level.values  == ref.level.values ).all()
-                and (grd.lat.values  == ref.lat.values ).all()
-                and (grd.lon.values  == ref.lon.values ).all()
+                and np.allclose(grd.lat.values, ref.lat.values, atol=0.001)
+                and np.allclose(grd.lon.values, ref.lon.values, atol=0.001)
                 and match
             )
         else:
             match = (
                 (grd.member.values  == ref.member.values ).all()
                 and (grd.level.values  == ref.level.values ).all()
-                and (grd.lat.values  == ref.lat.values ).all()
-                and (grd.lon.values  == ref.lon.values ).all()
+                and np.allclose(grd.lat.values, ref.lat.values, atol=0.001)
+                and np.allclose(grd.lon.values, ref.lon.values, atol=0.001)
                 and 
                     (((grd.time.values  == ref.time.values ).all()
                     and (grd.dtime.values  == ref.dtime.values ).all() #起报时间预报时效一致

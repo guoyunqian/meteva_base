@@ -105,8 +105,8 @@ def set_griddata_coords_dtype(da,member_type=str,
                             level_type=np.float32,
                             dtime_type=np.int32,
                             time_type=np.datetime64,
-                            lat_type=np.float32,
-                            lon_type=np.float32,
+                            lat_type=np.float64,
+                            lon_type=np.float64,
                             data_type = np.float32
                             ):
     try:
