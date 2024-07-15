@@ -56,6 +56,31 @@ def dateDiffInHours(t1, t2):
     return int(td.days * 24 + td.seconds / 3600)
 
 
+def _is_nonstring_container(obj):
+    """
+    判断是否是非字符串的 container容器类。 返回bool类型
+    """
+    from collections.abc import Container, Iterable
+    return isinstance(obj, Container) and isinstance(obj, Iterable) and not isinstance(obj, (str, bytes, bytearray))
+
+
+def _pygrib_param_id(grb):
+    """
+    返回grib_message的param_id
+    """
+    try:
+        # 对grib1类型数据获取其表格编码，两组数字组成
+        param_id = str.format("{0:0>3d}_{1:0>3d}", grb.table2Version, grb.paramId)
+    except Exception as e:
+        try:
+            # 对grib2类型数据提取，三组数字组成
+            param_id = str.format("{0}_{1}_{2}", grb.discipline, grb.parameterCategory, grb.parameterNumber)
+        except Exception as err:
+            msg = r"ERROR: no grib param_id, please CHECK! "
+            print(msg)
+            raise ValueError(err)
+    return param_id
+
 def pygrib_vars_info(f, save_path=None):
     """
     读取grib数据的变量清单,pygrib库依赖
@@ -67,12 +92,13 @@ def pygrib_vars_info(f, save_path=None):
     f.seek(0,0)
     data_list = []
     for grb in f:
-        try:
-            # 对grib1类型数据获取其表格编码，两组数字组成
-            param_id = str.format("{0:0>3d}_{1:0>3d}", grb.table2Version, grb.paramId)
-        except Exception as e:
-            # 对grib2类型数据提取，三组数字组成
-            param_id = str.format("{0}_{1}_{2}", grb.discipline, grb.parameterCategory, grb.parameterNumber)
+        # try:
+        #     # 对grib1类型数据获取其表格编码，两组数字组成
+        #     param_id = str.format("{0:0>3d}_{1:0>3d}", grb.table2Version, grb.paramId)
+        # except Exception as e:
+        #     # 对grib2类型数据提取，三组数字组成
+        #     param_id = str.format("{0}_{1}_{2}", grb.discipline, grb.parameterCategory, grb.parameterNumber)
+        param_id = _pygrib_param_id(grb)
     #     print(grb.shortName, grb.name, param_id, grb.typeOfLevel, grb.level)
         data = pd.DataFrame([[grb.shortName, grb.name, param_id, grb.typeOfLevel, grb.level]],
                             columns=['shortName', 'name', 'param_id', 'typeOfLevel', 'level' ])
@@ -88,7 +114,7 @@ def pygrib_vars_info(f, save_path=None):
             print(err)
     return(data_all)
 
-def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
+def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None, id=None):
     """
     读取grib变量并输出,pygrib库依赖
     :param 
@@ -96,6 +122,7 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
         shortName: 要素变量的简写名，具体可查看变量清单。支持str及多str列表形式，用于提取一个或多个要素；默认为None提取所有要素
         typeOfLevel: 要素为单层或高空多层，具体可查看变量清单。('isobaricInhPa','surface',...)
         level: 要素层次，typeOfLevel为'isobaricInhPa'时可设置。支持int及int列表形式；默认为None提取所有层次
+        id   : param_id（grib/grib2），具体见_pygrib_param_id（）函数
     :return: 变量(xarray.DataArray)列表list
     """
     dict0 = {}## select 参数列表
@@ -122,12 +149,19 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
     for i in grib_data:
         try:
             # 混合编码数据可能会抛出的异常
-            try:
-                # 对grib1类型数据获取其表格编码，两组数字组成
-                param_id = str.format("{0:0>3d}_{1:0>3d}", i.table2Version, i.paramId)
-            except Exception as e:
-                # 对grib2类型数据提取，三组数字组成
-                param_id = str.format("{0}_{1}_{2}", i.discipline, i.parameterCategory, i.parameterNumber)
+            # try:
+            #     # 对grib1类型数据获取其表格编码，两组数字组成
+            #     param_id = str.format("{0:0>3d}_{1:0>3d}", i.table2Version, i.paramId)
+            # except Exception as e:
+            #     # 对grib2类型数据提取，三组数字组成
+            #     param_id = str.format("{0}_{1}_{2}", i.discipline, i.parameterCategory, i.parameterNumber)
+            param_id = _pygrib_param_id(i)
+            if id is not None:
+                if _is_nonstring_container(id): # param_id改为数组
+                    id = [id]
+                if param_id not in id:# 有id参数时，只解码对应param_id是否在id列表中
+                    continue
+            print('param_id', param_id)
             valid_time = meb.all_type_time_to_datetime(str(i.validityDate) + "{0:0>4d}".format(i.validityTime))
             data_time = meb.all_type_time_to_datetime(str(i.dataDate) + "{0:0>4d}".format(i.dataTime))
             # data_time = i.validDate
@@ -140,15 +174,21 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
             step_lat = i.jDirectionIncrementInDegrees  # 纬度间隔
             s_lon = i.longitudeOfFirstGridPointInDegrees  # 经度起始值
             e_lon = i.longitudeOfLastGridPointInDegrees  # 经度结束值
+            if (s_lon>e_lon) and s_lon==180.:
+                s_lon = 0-s_lon 
             step_lon = i.iDirectionIncrementInDegrees  # 经度步长
-            # latlon = i.latlons()
-            # lats = latlon[0][:,0]
-            # lons = latlon[1][0,:]
+            latlon = i.latlons()
+            lats = latlon[0][:,0]
+            lons = latlon[1][0,:]
+            # print(lons, lats)
+            print(latlon[0], latlon[1])
+            print( latlon[0].shape, latlon[1].shape)
             g_lon = [s_lon, e_lon, -step_lon if s_lon > e_lon else step_lon]
             g_lat = [s_lat, e_lat, -step_lat if s_lat > e_lat else step_lat]
             g_time = [data_time]
+            print(s_lon, e_lon, step_lon, s_lat, e_lat, step_lat)
             d_time = [dateDiffInHours(data_time, valid_time)]
-            member = param_id + '-' + i.parameterName
+            member = param_id + '-' + i.shortName + '-' + str(i.level)
             grid_info = meb.grid(glon=g_lon, glat=g_lat, gtime=g_time,
                                 dtime_list=d_time, level_list=[level],
                                 member_list=[member])
@@ -158,6 +198,7 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
             array.append(grd)
         except Exception as e:
             logging.info(e)
+            print('ERROR', e)
             continue
     # keys = i.keys()
     # lonlat = i.latlons()
@@ -168,7 +209,7 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None):
     return array
 
 
-def read_pygrib(file_path,  shortName=None, typeOfLevel=None, level=None,
+def read_pygrib(file_path,  shortName=None, typeOfLevel=None, level=None, id=None,
             show_vars=False, dset=False):
     """
     读取grib格式数据，pygrib依赖
@@ -216,7 +257,7 @@ def read_pygrib(file_path,  shortName=None, typeOfLevel=None, level=None,
         return df_vars
     else:
         # 解码并存放读取完成的要素
-        array = read_pygrib_message(f, shortName=shortName, typeOfLevel=typeOfLevel, level=level)
+        array = read_pygrib_message(f, shortName=shortName, typeOfLevel=typeOfLevel, level=level, id=id)
         if dset==False:
             return array
         else:
