@@ -181,12 +181,12 @@ def read_pygrib_message(f, shortName=None, typeOfLevel=None, level=None, id=None
             lats = latlon[0][:,0]
             lons = latlon[1][0,:]
             # print(lons, lats)
-            print(latlon[0], latlon[1])
-            print( latlon[0].shape, latlon[1].shape)
+            # print(latlon[0], latlon[1])
+            # print( latlon[0].shape, latlon[1].shape)
             g_lon = [s_lon, e_lon, -step_lon if s_lon > e_lon else step_lon]
             g_lat = [s_lat, e_lat, -step_lat if s_lat > e_lat else step_lat]
             g_time = [data_time]
-            print(s_lon, e_lon, step_lon, s_lat, e_lat, step_lat)
+            # print(s_lon, e_lon, step_lon, s_lat, e_lat, step_lat)
             d_time = [dateDiffInHours(data_time, valid_time)]
             member = param_id + '-' + i.shortName + '-' + str(i.level)
             grid_info = meb.grid(glon=g_lon, glat=g_lat, gtime=g_time,

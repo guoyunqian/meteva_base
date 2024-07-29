@@ -23,7 +23,7 @@ pip install meteva_base
 ```
 
 ## 用户手册
-[meteva_base 用户手册及接口API](https://www.showdoc.com.cn/metevabase/0)
+[meteva_base 用户手册及接口API](https://www.showdoc.com.cn/metevabase)
 
 ## 设计和研发者
 刘凑华（01058995621,15811585045），郭云谦(01058995370)，宫宇，曹勇，唐健，曾晓青，代刊，韦青，朱文剑，
