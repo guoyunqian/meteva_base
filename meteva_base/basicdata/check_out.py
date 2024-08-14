@@ -8,7 +8,7 @@ import copy
 import meteva_base
 
 
-def checkout_griddata(grd, is_single=False, valid_val=[-1000, 1000, np.NaN]):
+def checkout_griddata(grd, is_single=False, valid_val=[-1000, 1000, np.nan]):
     """
     检查grd是否为符合meteva_base规定的网格数据, 未通过检查raise ValueError
     is_single: 是否检查网格数据是否为单要素(lat,lon),默认为否
@@ -35,7 +35,7 @@ def checkout_griddata(grd, is_single=False, valid_val=[-1000, 1000, np.NaN]):
         grd0.values = grd0.values.astype(np.float32)
     ## 合理值
     if ((grd0.values<valid_val[0])|(grd0.values>valid_val[1])).any():
-        msg = "WARNING: griddata values exceed VALID_VAL, setting to np.NaN"
+        msg = "WARNING: griddata values exceed VALID_VAL, setting to np.nan"
         print(msg)
         grd0.values[(grd0.values<valid_val[0])|(grd0.values>valid_val[1])] = valid_val[2]
     ## 维度数据类型
