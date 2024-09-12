@@ -2319,7 +2319,7 @@ def read_stadata_from_csv(filename, station=None, drop_same_id=True, show = Fals
         print(filename+' reading failed')
         print('数据格式不符，请使用Pandas对应方法自行读取')
         return None
-        
+
     
     
     

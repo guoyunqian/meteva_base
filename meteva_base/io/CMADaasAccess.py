@@ -243,18 +243,12 @@ class CMADaasAccess():
                 datetime.datetime.now().strftime("%Y%m%d%H%M")))
             pddata = pd.DataFrame.from_dict(j_dict)
             ## 更改dataframe
-            sta = meteva_base.sta_data(pddata, columns=['time', 'id', 'lat', 'lon', 'data0'])
+            sta = meteva_base.sta_data(pddata, columns=['time', 'id', 'lat', 'lon', 'data0'], is_dtype_conv=False)
             sta.level = 0
             sta.dtime = 0
-            sta.time = pd.to_datetime(sta.time)
-            sta.level = sta.level.astype(np.int16)
-            sta.id = sta.id.astype(np.int32)
-            sta.dtime = sta.dtime.astype(np.int16)
-            sta.lon = sta.lon.astype(np.float32)
-            sta.lat = sta.lat.astype(np.float32)
             try:
-                sta.data0 = sta.data0.astype(np.float32)
-                sta.data0[sta.data0 >= 990000] = default
+                sta['data0'] = sta['data0'].astype(np.float32)
+                sta.loc[sta['data0'] >= 990000, 'data0'] = default
             except:
                 pass
             return (sta)
