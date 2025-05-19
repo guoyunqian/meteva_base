@@ -186,7 +186,7 @@ def _get_date_from_str(input,get_datetime64=False):
     输入str/datetime64/datetime时，输出datetime或np.datetime（通过get_datetime64参数控制）
     '''
     if isinstance(input, int):##输入为数字时
-        input = ''.join([x for x in gtime[i] if x.isdigit()])
+        input = ''.join([x for x in input if x.isdigit()])
     if type(input) == str:## 输入为字符串
         num = ''.join([x for x in input if x.isdigit()])
         # 用户输入2019041910十位字符，后面补全加0000，为14位统一处理

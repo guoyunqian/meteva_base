@@ -1376,7 +1376,7 @@ def decode_griddata_from_AWX_byteArray(byteArray,grid = None,level = None,time =
     grd.values = real_data_awx.reshape(1, 1, 1, 1, grid0.nlat, grid0.nlon)
     meteva_base.reset(grd)
     meteva_base.set_griddata_coords(grd,gtime=[time],dtime_list=[dtime],level_list=[level],member_list=[data_name])
-    units,model,dtime_units,level_type,time_type,time_bounds=get_griddata_attrs(da1)
+    units,model,dtime_units,level_type,time_type,time_bounds=get_griddata_attrs(grd)
     if (grid is None):
         grd.name = "data0"
         meteva_base.basicdata.set_griddata_attrs(grd, 
@@ -1413,7 +1413,7 @@ def read_griddata_from_AWX_file(filename,grid = None,level = None,time = None,dt
         file = open(filename, 'rb')
         byteArray = file.read()
         grd = decode_griddata_from_AWX_byteArray(byteArray,grid,level = level,time = time,dtime = dtime,data_name = data_name)
-        units,model,dtime_units,level_type,time_type,time_bounds=get_griddata_attrs(da1)
+        units,model,dtime_units,level_type,time_type,time_bounds=get_griddata_attrs(grd)
         meteva_base.basicdata.set_griddata_attrs(grd, 
                                                  units = units, 
                                                  model_var = model, 
@@ -1960,7 +1960,7 @@ def read_griddata_from_radar_mosaic_v3_file(filename, grid=None, level=None, tim
         if show:
             print("success read from " + filename)
         # da.data=np.float32(da.data)
-        set_griddata_coords_dtype(da)
+        set_griddata_coords_dtype(grd)
         return grd
     except:
         if show:

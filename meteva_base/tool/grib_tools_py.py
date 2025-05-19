@@ -283,6 +283,7 @@ def read_sta_from_grib2(file, sta_info):
     return result, grd
 
 if __name__ == '__main__':
+    "添加逐时"
     ## 02 SCMOC_ER01
     lons = [116.35]
     lats = [39.95]
