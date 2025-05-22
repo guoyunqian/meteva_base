@@ -188,7 +188,7 @@ def read_micaps14(filename,time = None,dtime = 0,data_name = None):
                 idx += 1
 
                 # symbol xyz
-                xyz = np.array(txt[idx:(idx + 3)]).astype(np.float)
+                xyz = np.array(txt[idx:(idx + 3)]).astype(float)
                 symbol_xyz.append(xyz)
                 idx += 3
 
