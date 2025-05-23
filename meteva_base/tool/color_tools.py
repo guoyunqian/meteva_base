@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 import matplotlib.colors as colors
+import matplotlib.colors as mcolors
 import pkg_resources
 import math
 import os
@@ -482,7 +483,7 @@ def cmap_clevs_mode(vmax):
     #clevs2 = [-2,-1,0]
     cmap2,clevs2 = def_cmap_clevs(cmap = "gray",clevs = [-2,-1,0],vmin =-1,vmax = 0,cut_colorbar=True)
     cmap2,clevs2 = get_part_cmap_and_clevs(cmap2,clevs2,vmin= -0.5,vmax = 0,cut_accurate=True)
-    cmap3,clevs3 = merge_cmap_clevs(cmap2,clevs2,cmap1,clevs1)
+    cmap3,clevs3 = merge_cmap_clevs(cmap2, cmap1, clevs2, clevs1)
     clevs3 = (np.array(clevs3) -0.5).tolist()
 
     #show_cmap_clev(cmap3,clevs3)
@@ -1074,21 +1075,53 @@ def def_cmap_clevs(cmap = "rainbow",clevs = None,vmin = None,vmax = None,cut_col
     return cmap4,clevs4
 
 
-def merge_cmap_clevs(cmap0,clevs0,cmap1,clevs2):
-    '''
-    合并两个colorbar
-    :param cmap0:
-    :param clevs0:
-    :param cmap1:
-    :param clevs2:
-    :return:
-    '''
-    colors0 = np.array(cmap0.colors).tolist()
-    colors1 = np.array(cmap1.colors).tolist()
+# def merge_cmap_clevs(cmap0, clevs0, cmap1, clevs2):
+#     '''
+#     合并两个colorbar
+#     :param cmap0: 第一个 colormap（可以是 ListedColormap 或颜色列表）
+#     :param clevs0: 第一个 colorbar 的等级列表
+#     :param cmap1: 第二个 colormap（可以是 ListedColormap 或颜色列表）
+#     :param clevs2: 第二个 colorbar 的等级列表
+#     :return: 合并后的 colormap 和 clevs
+#     '''
+#     colors0 = np.array(cmap0.colors).tolist()
+#     colors1 = np.array(cmap1.colors).tolist()
+#     colors0.extend(colors1)
+#     cmap_m = mcolors.ListedColormap(colors0, 'indexed')
+#
+#     clevs_combined = clevs0.copy()
+#     clevs_combined.extend(clevs2)
+#     return cmap_m, clevs_combined
+
+def merge_cmap_clevs(cmap0, cmap1, clevs0, clevs1):
+    import numpy as np
+    import matplotlib.colors as mcolors
+
+    # 判断 cmap0 是否是 ListedColormap，否则假设是颜色列表
+    if hasattr(cmap0, "colors"):
+        colors0 = np.array(cmap0.colors).tolist()
+    else:
+        colors0 = list(cmap0)
+
+    if hasattr(cmap1, "colors"):
+        colors1 = np.array(cmap1.colors).tolist()
+    else:
+        colors1 = list(cmap1)
+
     colors0.extend(colors1)
-    cmap_m = colors.ListedColormap(colors0, 'indexed')
-    clevs0.extend(clevs2)
-    return cmap_m,clevs0
+    cmap_m = mcolors.ListedColormap(colors0, 'indexed')
+
+    # 合并 clevs，建议防止输入 None
+    if clevs0 is None:
+        clevs0 = []
+    if clevs1 is None:
+        clevs1 = []
+
+    clevs_combined = list(clevs0)  # 拷贝
+    clevs_combined.extend(clevs1)
+
+    return cmap_m, clevs_combined
+
 
 
 def cart2sph(x, y, z):
@@ -1251,7 +1284,7 @@ def merge_cmap_clevs(cmap0,cmap1,clevs0=None,clevs1=None):
     cmap_m = colors.ListedColormap(colors0, 'indexed')
     if not (clevs0 is None or clevs1 is None):
         clevs_m =  np.array(clevs0.copy()).tolist()
-        clevs_m.extend(np.array(clevs2).tolist())
+        clevs_m.extend(np.array(clevs1).tolist())
     return(cmap_m,clevs_m)
 
 
