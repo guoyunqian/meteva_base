@@ -12,30 +12,30 @@ import colorsys
 import meteva_base
 
 def clev_cmap_temper_2m_k():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     cmap,clevs =  get_cmap_and_clevs_from_file(path)
     clevs += 273.15
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs,cmap
 
 def clev_cmap_temper_2m():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 
 def clev_cmap_rain_1h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_3h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_24h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_24h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_24h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
@@ -45,48 +45,48 @@ def clev_cmap_rh():
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_vis():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_wind_speed():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_cloud_total():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 
 def clev_cmap_rain_1h_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_3h_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rh_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_vis_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_wind_speed_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_cloud_total_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
@@ -745,31 +745,31 @@ def get_cmap_from_picture(path,show = False):
 def get_cmap_and_clevs_by_element_name(element_name):
     path = None
     if element_name == "temp":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     elif element_name == "rain_1h":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h.txt")
     elif element_name == "rain_1h_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h_error.txt")
     elif element_name == "rain_3h":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h.txt")
     elif element_name == "rain_3h_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h_error.txt")
     elif element_name == "rh":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh.txt")
     elif element_name == "rh_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh_error.txt")
     elif element_name == "vis":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis.txt")
     elif element_name == "vis_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis_error.txt")
     elif element_name == "wind_speed":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed.txt")
     elif element_name == "wind_speed_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed_error.txt")
     elif element_name == "tcdc":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc.txt")
     elif element_name == "tcdc_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc_error.txt")
     cmap,clevs = get_cmap_and_clevs_from_file(path)
     return cmap,clevs
 
@@ -886,7 +886,7 @@ def get_color_list(legend_num):
 
 
 def get_cmap_and_clevs_by_name(cmap_name,vmin,vmax):
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_"+cmap_name+".txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_"+cmap_name+".txt")
     if os.path.exists(path):
         cmap,clevs = get_cmap_and_clevs_from_file(path)
     elif cmap_name == "bias":
