@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 plt.rcParams['axes.unicode_minus']=False #用来正常显示负号
 import matplotlib.colors as colors
+import matplotlib.colors as mcolors
 import pkg_resources
 import math
 import os
@@ -12,30 +13,30 @@ import colorsys
 import meteva_base
 
 def clev_cmap_temper_2m_k():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     cmap,clevs =  get_cmap_and_clevs_from_file(path)
     clevs += 273.15
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs,cmap
 
 def clev_cmap_temper_2m():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 
 def clev_cmap_rain_1h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_3h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_24h():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_24h.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_24h.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
@@ -45,48 +46,48 @@ def clev_cmap_rh():
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_vis():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_wind_speed():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_cloud_total():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 
 def clev_cmap_rain_1h_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rain_3h_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_rh_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_vis_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_wind_speed_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
 def clev_cmap_cloud_total_error():
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc_error.txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc_error.txt")
     cmap, clevs = get_cmap_and_clevs_from_file(path)
     print("不再推荐使用该函数，推荐使用meb.def_cmap_clevs相应功能,请参考color工具中相关说明")
     return clevs, cmap
@@ -482,7 +483,7 @@ def cmap_clevs_mode(vmax):
     #clevs2 = [-2,-1,0]
     cmap2,clevs2 = def_cmap_clevs(cmap = "gray",clevs = [-2,-1,0],vmin =-1,vmax = 0,cut_colorbar=True)
     cmap2,clevs2 = get_part_cmap_and_clevs(cmap2,clevs2,vmin= -0.5,vmax = 0,cut_accurate=True)
-    cmap3,clevs3 = merge_cmap_clevs(cmap2,clevs2,cmap1,clevs1)
+    cmap3,clevs3 = merge_cmap_clevs(cmap2, cmap1, clevs2, clevs1)
     clevs3 = (np.array(clevs3) -0.5).tolist()
 
     #show_cmap_clev(cmap3,clevs3)
@@ -745,31 +746,31 @@ def get_cmap_from_picture(path,show = False):
 def get_cmap_and_clevs_by_element_name(element_name):
     path = None
     if element_name == "temp":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_temp_2m.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
     elif element_name == "rain_1h":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h.txt")
     elif element_name == "rain_1h_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_1h_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_1h_error.txt")
     elif element_name == "rain_3h":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h.txt")
     elif element_name == "rain_3h_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rain_3h_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rain_3h_error.txt")
     elif element_name == "rh":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh.txt")
     elif element_name == "rh_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_rh_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_rh_error.txt")
     elif element_name == "vis":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis.txt")
     elif element_name == "vis_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_vis_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_vis_error.txt")
     elif element_name == "wind_speed":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed.txt")
     elif element_name == "wind_speed_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_wind_speed_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_wind_speed_error.txt")
     elif element_name == "tcdc":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc.txt")
     elif element_name == "tcdc_error":
-        path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_tcdc_error.txt")
+        path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_tcdc_error.txt")
     cmap,clevs = get_cmap_and_clevs_from_file(path)
     return cmap,clevs
 
@@ -886,7 +887,7 @@ def get_color_list(legend_num):
 
 
 def get_cmap_and_clevs_by_name(cmap_name,vmin,vmax):
-    path = pkg_resources.resource_filename('meteva', "resources/colormaps/color_"+cmap_name+".txt")
+    path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_"+cmap_name+".txt")
     if os.path.exists(path):
         cmap,clevs = get_cmap_and_clevs_from_file(path)
     elif cmap_name == "bias":
@@ -1074,21 +1075,53 @@ def def_cmap_clevs(cmap = "rainbow",clevs = None,vmin = None,vmax = None,cut_col
     return cmap4,clevs4
 
 
-def merge_cmap_clevs(cmap0,clevs0,cmap1,clevs2):
-    '''
-    合并两个colorbar
-    :param cmap0:
-    :param clevs0:
-    :param cmap1:
-    :param clevs2:
-    :return:
-    '''
-    colors0 = np.array(cmap0.colors).tolist()
-    colors1 = np.array(cmap1.colors).tolist()
+# def merge_cmap_clevs(cmap0, clevs0, cmap1, clevs2):
+#     '''
+#     合并两个colorbar
+#     :param cmap0: 第一个 colormap（可以是 ListedColormap 或颜色列表）
+#     :param clevs0: 第一个 colorbar 的等级列表
+#     :param cmap1: 第二个 colormap（可以是 ListedColormap 或颜色列表）
+#     :param clevs2: 第二个 colorbar 的等级列表
+#     :return: 合并后的 colormap 和 clevs
+#     '''
+#     colors0 = np.array(cmap0.colors).tolist()
+#     colors1 = np.array(cmap1.colors).tolist()
+#     colors0.extend(colors1)
+#     cmap_m = mcolors.ListedColormap(colors0, 'indexed')
+#
+#     clevs_combined = clevs0.copy()
+#     clevs_combined.extend(clevs2)
+#     return cmap_m, clevs_combined
+
+def merge_cmap_clevs(cmap0, cmap1, clevs0, clevs1):
+    import numpy as np
+    import matplotlib.colors as mcolors
+
+    # 判断 cmap0 是否是 ListedColormap，否则假设是颜色列表
+    if hasattr(cmap0, "colors"):
+        colors0 = np.array(cmap0.colors).tolist()
+    else:
+        colors0 = list(cmap0)
+
+    if hasattr(cmap1, "colors"):
+        colors1 = np.array(cmap1.colors).tolist()
+    else:
+        colors1 = list(cmap1)
+
     colors0.extend(colors1)
-    cmap_m = colors.ListedColormap(colors0, 'indexed')
-    clevs0.extend(clevs2)
-    return cmap_m,clevs0
+    cmap_m = mcolors.ListedColormap(colors0, 'indexed')
+
+    # 合并 clevs，建议防止输入 None
+    if clevs0 is None:
+        clevs0 = []
+    if clevs1 is None:
+        clevs1 = []
+
+    clevs_combined = list(clevs0)  # 拷贝
+    clevs_combined.extend(clevs1)
+
+    return cmap_m, clevs_combined
+
 
 
 def cart2sph(x, y, z):
@@ -1251,7 +1284,7 @@ def merge_cmap_clevs(cmap0,cmap1,clevs0=None,clevs1=None):
     cmap_m = colors.ListedColormap(colors0, 'indexed')
     if not (clevs0 is None or clevs1 is None):
         clevs_m =  np.array(clevs0.copy()).tolist()
-        clevs_m.extend(np.array(clevs2).tolist())
+        clevs_m.extend(np.array(clevs1).tolist())
     return(cmap_m,clevs_m)
 
 

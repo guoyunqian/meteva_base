@@ -137,7 +137,7 @@ def set_customized_shpfile_list(shpfile_list = None):
         for shpfile_filename in shpfile_list:
             if shpfile_filename.find("/") <0 and shpfile_filename.find("\\") <0:
                 shpfile = pkg_resources.resource_filename(
-                    'meteva', "resources/maps/" + shpfile_filename)
+                    'meteva_base', "resources/maps/" + shpfile_filename)
 
                 meteva_base.customized_basemap_list.append(shpfile)
             else:
@@ -171,7 +171,7 @@ def add_china_map_2basemap(ax,name ="province", facecolor='none',
                  'county': "BOUL_X", 'river': "hyd1_4p",
                  'river_high': "hyd2_4p"}
         shpfile = pkg_resources.resource_filename(
-            'meteva', "resources/maps/" + names[name])
+            'meteva_base', "resources/maps/" + names[name])
         #print(shpfile)
         shp1 = readshapefile(shpfile, default_encoding=encoding)
         lines = LineCollection(shp1,antialiaseds=(1,),zorder=zorder)

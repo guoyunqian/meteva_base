@@ -47,7 +47,7 @@ def concat(data_list):
             index_member[members_all[i]] = i
 
         for x in range(ngrd):
-            grd_interp = meteva_base.interp_gg_linear(data1_list[x], grid_xy, outer_value=np.NaN)
+            grd_interp = meteva_base.interp_gg_linear(data1_list[x], grid_xy, outer_value=np.nan)
             if grd_interp is None:
                 continue
             levels = grd_interp["level"].values
