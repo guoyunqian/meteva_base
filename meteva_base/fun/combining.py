@@ -567,6 +567,30 @@ def combine_expand(sta,sta_type):
     sta_type1 = meteva_base.sta_data(sta_type)
     return combine_expand_IV(sta,sta_type1)
 
+def normalize_gtime(gtime):
+    """
+    确保 gtime 至少有 start, end 和 freq 三个元素。
+    如果缺失 freq 或 end，则默认给出。
+    """
+    import datetime
+    import pandas as pd
+
+    if len(gtime) == 1:
+        start = end = gtime[0]
+        freq = "1H"
+    elif len(gtime) == 2:
+        start, end = gtime
+        freq = "1H"
+    else:
+        start, end, freq = gtime
+        if isinstance(freq, datetime.timedelta):
+            hours = int(freq.total_seconds() / 3600)
+            freq = f"{hours}H"
+        elif isinstance(freq, (datetime.datetime, pd.Timestamp)):
+            freq = "1H"  # 非法格式时 fallback
+
+    return [start, end, freq]
+
 def get_inner_grid(grid0,grid1,used_coords = "xy"):
     if used_coords =="xy":
         si = 0
@@ -609,6 +633,8 @@ def get_inner_grid(grid0,grid1,used_coords = "xy"):
         elon = grid0.elon - ei * grid0.dlon
         elat = grid0.elat - ej * grid0.dlat
 
+        grid0.gtime = normalize_gtime(grid0.gtime)
+        grid1.gtime = normalize_gtime(grid1.gtime)
         times0 = pd.date_range(grid0.gtime[0], grid0.gtime[1], freq=grid0.gtime[2])
         times1 = pd.date_range(grid1.gtime[0], grid1.gtime[1], freq=grid1.gtime[2])
 
@@ -648,6 +674,22 @@ def get_outer_grid(grid0,grid1,used_coords = "xy"):
     elif used_coords == "all":
         if grid0 is None:return grid1
         if grid1 is None:return grid0
+
+        def complete_gtime(gtime):
+            if len(gtime) == 1:
+                return [gtime[0], gtime[0] + datetime.timedelta(hours=12), "12H"]
+            elif len(gtime) == 2:
+                return [gtime[0], gtime[1], "12H"]
+            elif len(gtime) >= 3:
+                # 强制第三个元素为字符串，如果是时间类型就替换为默认"12H"
+                freq = gtime[2]
+                if isinstance(freq, (pd.Timestamp, datetime.datetime)):
+                    freq = "12H"
+                return [gtime[0], gtime[1], freq]
+
+        grid0.gtime = complete_gtime(grid0.gtime)
+        grid1.gtime = complete_gtime(grid1.gtime)
+
         slon = min(grid0.slon, grid1.slon)
         slat = min(grid0.slat, grid1.slat)
         elon = max(grid0.elon, grid1.elon)
@@ -662,6 +704,7 @@ def get_outer_grid(grid0,grid1,used_coords = "xy"):
             gtime_d = "1h"
         else:
             gtime_d = times[1] - times[0]
+            gtime_d = f"{gtime_d.seconds // 3600}H"
 
         dtimes = list(set(grid0.dtimes)|set(grid1.dtimes))
         dtimes.sort()
