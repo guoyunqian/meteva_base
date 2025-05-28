@@ -3,7 +3,7 @@ import numpy as np
 import re
 import pandas as pd
 
-#所有类型的时间转换为time64
+# 所有类型的时间转换为time64
 def all_type_time_to_time64(time0):
     if isinstance(time0,np.datetime64):
         return time0

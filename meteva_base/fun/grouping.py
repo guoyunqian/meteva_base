@@ -557,7 +557,8 @@ def group(sta_ob_and_fos,g = None,gll = None,drop_g_column = False):
     if len(valid_group_list_list)==0:
         valid_group_list = None
     else:
-        vg =np.array(valid_group_list_list)
+        vg = np.array(valid_group_list_list, dtype=object)
+        #vg =np.array(valid_group_list_list)
         if len(valid_group_list_list) > 1:
             valid_group_list =  vg.squeeze().tolist()
         else:
