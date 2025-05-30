@@ -235,7 +235,7 @@ def read_pygrib(file_path,  shortName=None, typeOfLevel=None, level=None, id=Non
             if os.path.exists(file_path0):#存在解压文件
                 file_name = file_path0
             else:
-                print("OPEN {}: Compressed".format(file_name))
+                print("OPEN {}: Compressed".format(file_path))
                 file_name = un_bz2_file(file_path)
         else:#非压缩文件名
             print("OPEN {}: not Compressed".format(file_path))
