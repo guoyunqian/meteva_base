@@ -156,7 +156,8 @@ def in_time_list(data, time_list):
         else:
 
             dhs_fo = times_fo[-1] - times_fo[0]
-            gtime = [times_fo[0], times_fo[-1], dhs_fo]
+            #gtime = [times_fo[0], times_fo[-1], dhs_fo]
+            gtime = [times_fo[0], times_fo[-1]]
 
         grid1 = meteva_base.basicdata.grid(grid0.glon, grid0.glat,
                                            gtime=gtime,

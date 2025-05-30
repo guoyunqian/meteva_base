@@ -107,7 +107,8 @@ def change(data,delta = 24,used_coords = "time"):
             if len(time_list_e) ==0:
                 gtime1 = time_list_e
             else:
-                gtime1 = [time_list_e[0],time_list_e[-1],time_list_e[1] - time_list_e[0]]
+                gtime1 = time_list_e
+                #gtime1 = [time_list_e[0],time_list_e[-1],time_list_e[1] - time_list_e[0]]
             dat_delta = data.values[:,:,index_e,:,:,:] - data.values[:,:,index_s,:,:,:]
             grid1 = meteva_base.grid(grid0.glon,grid0.glat,gtime1,grid0.dtimes,grid0.levels,grid0.members)
             grd_change = meteva_base.grid_data(grid1,dat_delta)
