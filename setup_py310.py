@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(  
     name = 'meteva_base',  
-    version = '0.3.0.2',
+    version = '0.3.0.1',
     description = ("base classes and functions of generally meteorogical usage, like Basic_class/IO/calculation/plot .etc"),  
     long_description=long_description,
     long_description_content_type = 'text/markdown',
@@ -37,26 +37,25 @@ setup(
     install_requires=[
                       ##  numpy v1依赖
                       'numpy>=2.0.2',
-                      'h5py>=3.14.0',
+                      #'h5py>=3.11.0',
                       'netCDF4==1.7.2',
-                      'pyarrow>=21.0.0',
+                      'pyarrow>=20.0.0',
                       ##  numpy v2依赖(测试中)
                       # 'numpy>=2.2.1',
                       # 'h5py>=3.11.0',
                       # 'netCDF4>=1.7.1.post2',
 
-                      'pandas>=2.3.1',
-                      'scipy>=1.13.0',
-                      'xarray>=2024.7.0',
-                      'scikit-learn>=1.5.0',
-                      'matplotlib>=3.9.4',
+                      'pandas>=2.2.0',
+                      'scipy>=1.15.0',
+                      'xarray>=2025.4.0',
+                      'scikit-learn>=1.0.0',
+                      'matplotlib>=3.10.3',
                       'httplib2>=0.12.0',
                       'protobuf<=3.20.3',
                       'tables>=3.4.4',
                       'urllib3>=1.21.1',
                       'pyshp>=2.1.0',
                       'shapely>=1.8.0',
-                      'ndindex>=1.10.1'
 
 ## optional module
 ### contour functions
