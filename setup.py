@@ -35,15 +35,10 @@ setup(
 
     url = 'https://github.com/guoyunqian/meteva_base',
     install_requires=[
-                      ##  numpy v1依赖
                       'numpy>=2.0.2',
                       'h5py>=3.14.0',
                       'netCDF4==1.7.2',
                       'pyarrow>=21.0.0',
-                      ##  numpy v2依赖(测试中)
-                      # 'numpy>=2.2.1',
-                      # 'h5py>=3.11.0',
-                      # 'netCDF4>=1.7.1.post2',
 
                       'pandas>=2.3.1',
                       'scipy>=1.13.0',
