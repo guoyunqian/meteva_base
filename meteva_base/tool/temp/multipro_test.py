@@ -1,6 +1,6 @@
 # task_functions.py（适配简化汇总版并行类，无需修改）
 from typing import Union, Dict, Any
-from multipro_plugin import SimpleParallelTool
+from meteva.tool.multipro_tool import SimpleParallelTool
 
 # ---------------------- 测试函数，有返回值任务函数 ----------------------
 def complex_calc_by_dict(**kwargs) -> Union[Dict[str, Any], str]:
@@ -44,8 +44,6 @@ def batch_print_info(**kwargs) -> None:
         print(f"【{prefix}】执行完毕：base={base}")
     except Exception as e:
         print(f"【任务异常】：{str(e)}")
-
-
 
 
 # ---------------------- 演示函数 ----------------------
