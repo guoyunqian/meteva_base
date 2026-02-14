@@ -169,7 +169,7 @@ class grid:
         grid_str += "time_bounds:" + str(self.time_bounds) + "\n"
         return grid_str
 
-def get_true_value(value):
+def get_true_value_bak(value):
     dlon2 = round(value, 2)
     dlon3 = round(value, 3)
     dlon4 = round(value, 4)
@@ -180,6 +180,24 @@ def get_true_value(value):
         return dlon3
     else:
         return value
+
+def get_true_value(value: float) -> float:
+    """
+    根据 2~5 位四舍五入结果的一致性，返回最可能的“真实”有效小数位数。
+    若无法推断，则返回原值。
+    """
+    from collections import Counter
+    # 生成 2~5 位四舍五入候选
+    candidates = [round(value, d) for d in range(2, 6)]
+    
+    # 按出现次数降序排列
+    most_common = Counter(candidates).most_common()
+    
+    # 如果最高票数的出现次数≥2，说明至少两档精度一致，用它
+    if most_common[0][1] >= 2:
+        return most_common[0][0]
+    # 否则无法推断，保持原值
+    return value
 
 
 def get_grid_of_data(grid_data0):
