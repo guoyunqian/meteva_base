@@ -52,7 +52,8 @@ def grid_ragular(slon,dlon,elon,slat,dlat,elat):
     return slon1,dlon1,elon1,slat1,dlat1,elat1,nlon1,nlat1
 
 
-def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
+def read_griddata_from_micaps4(filename,grid=None,
+                            level = None,time = None,dtime = None,data_name = "data0",dtime_units = "hour",outer_value = None,show = False):
     '''
     读取micaps4格式的格点数据，并将其保存为xarray中DataArray结构的六维数据信息
     :param filename:Micaps4格式的文件路径和文件名
@@ -111,14 +112,14 @@ def read_griddata_from_micaps4(filename,grid=None,level = None,time = None,dtime
                     time = datetime.datetime(2099,1,1,8,0)
             else:
                 time = meteva_base.tool.time_tools.all_type_time_to_time64(time)
-            #print(dates)
-            #times = pd.date_range(dates, periods=1)
+
             if dtime is None:
                 dtime = dts
-            #print(levels,times,dts)
+            # if value_name is None: value_name = "data0"
             da1 = xr.DataArray(dat, coords={'member': [data_name], 'level': [level], 'time': [time], 'dtime': [dtime],
                                            'lat': lat, 'lon': lon},
-                              dims=['member', 'level', 'time', 'dtime', 'lat', 'lon'])           
+                              dims=['member', 'level', 'time', 'dtime', 'lat', 'lon'],
+                              name='data0')           
             meteva_base.reset(da1)
             units,model,dtime_units,level_type,time_type,time_bounds=get_griddata_attrs(da1)
             if grid is None: #func

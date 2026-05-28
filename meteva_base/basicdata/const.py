@@ -1,7 +1,6 @@
 #!/usr/bin/python3.6
 # -*- coding:UTF-8 -*-
 #添加一些常量
-import pkg_resources
 from importlib.resources import files, as_file
 
 # def clev_cmap_temper_2m_k():
