@@ -12,7 +12,6 @@
 import shapefile
 from matplotlib.path import Path
 from matplotlib.patches import PathPatch
-#import pkg_resources
 from importlib.resources import files, as_file
 import numpy as np
 
@@ -127,7 +126,6 @@ def shp2clip_by_lines(originfig, ax, line_list):
 
 
 def shp2clip_by_region_name(originfig, ax, region_name_list):
-    #province = pkg_resources.resource_filename('meteva_base', "resources/maps/Province")
     province = str(as_file(files('meteva_base') / "resources" / "maps" / "Province").__enter__())
 
 

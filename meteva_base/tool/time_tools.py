@@ -221,7 +221,7 @@ def _get_date_from_str(input,get_datetime64=False):
             stime = input
     return(stime)
 
-def get_date_list_create(gtime=['2020060700', '2020060712', 12], delta='H'):
+def get_date_list_create(gtime=['2020060700', '2020060712', 12], delta='h'):
     """
     ## 输入起始、终止、间隔时间，获取多时间列表
     gtime参数（start_date_str, end_date_str, hour_intervals）

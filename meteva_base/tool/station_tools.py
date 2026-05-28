@@ -66,8 +66,6 @@ def get_station_id_name_dict(id_name_list_file):
         station_id_name_dict = {}
     return station_id_name_dict
 
-# station_id_name_dict = get_station_id_name_dict(pkg_resources.resource_filename('meteva', "resources/stations/station_id_pro_county.txt"))
-#station_id_name_dict = get_station_id_name_dict(pkg_resources.resource_filename('meteva_base', "resources/stations/station_id_pro_county.txt"))
 station_id_name_dict = get_station_id_name_dict(str(as_file(files('meteva_base') / "resources" / "stations" / "station_id_pro_county.txt").__enter__()))
 station_name_id_dict = dict(zip(station_id_name_dict.values(),station_id_name_dict.keys()))
 

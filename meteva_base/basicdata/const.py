@@ -2,6 +2,11 @@
 # -*- coding:UTF-8 -*-
 #添加一些常量
 import pkg_resources
+from importlib.resources import files, as_file
+
+# def clev_cmap_temper_2m_k():
+#     #path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_temp_2m.txt")
+#     path = str(as_file(files('meteva_base') / "resources" / "colormaps" / "color_temp_2m.txt").__enter__())
 PI = 3.1415926
 E = 2.7182818
 ER = 6371.229
@@ -9,12 +14,18 @@ OMEGA = 0.00072722
 IV = 999999
 K = 273.15
 dis_1_degree = 111.195
-station_国家站 = pkg_resources.resource_filename('meteva_base', "resources/stations/sta2411_alt.txt")
-station_国家站_考核区域站 = pkg_resources.resource_filename('meteva_base', "resources/stations/stat10461.txt")
-station_全球城市 = pkg_resources.resource_filename('meteva_base', "resources/stations/station_global_alt_11621.txt")
-station_全球重点城市 = pkg_resources.resource_filename('meteva_base', "resources/stations/sta_global_alt_243.txt")
-terrain_height_grd = pkg_resources.resource_filename('meteva_base', "resources/stations/dem_0.00833.nc")
-terrain_height_sta = pkg_resources.resource_filename('meteva_base', "resources/stations/sta_only_alt.txt")
+# station_国家站 = pkg_resources.resource_filename('meteva_base', "resources/stations/sta2411_alt.txt")
+station_国家站 = str(as_file(files('meteva_base') / "resources" / "stations" / "sta2411_alt.txt").__enter__())
+# station_国家站_考核区域站 = pkg_resources.resource_filename('meteva_base', "resources/stations/stat10461.txt")
+station_国家站_考核区域站 = str(as_file(files('meteva_base') / "resources" / "stations" / "stat10461.txt").__enter__())
+# station_全球城市 = pkg_resources.resource_filename('meteva_base', "resources/stations/station_global_alt_11621.txt")
+station_全球城市 = str(as_file(files('meteva_base') / "resources" / "stations" / "station_global_alt_11621.txt").__enter__())
+# station_全球重点城市 = pkg_resources.resource_filename('meteva_base', "resources/stations/sta_global_alt_243.txt")
+station_全球重点城市 = str(as_file(files('meteva_base') / "resources" / "stations" / "sta_global_alt_243.txt").__enter__())
+# terrain_height_grd = pkg_resources.resource_filename('meteva_base', "resources/stations/dem_0.00833.nc")
+terrain_height_grd = str(as_file(files('meteva_base') / "resources" / "stations" / "dem_0.00833.nc").__enter__())
+# terrain_height_sta = pkg_resources.resource_filename('meteva_base', "resources/stations/sta_only_alt.txt")
+terrain_height_sta = str(as_file(files('meteva_base') / "resources" / "stations" / "sta_only_alt.txt").__enter__())
 gds_ip_port = None
 customized_basemap_list = None
 beaufort_scale = [0.0,0.3,1.6,3.4,5.5,8.0,10.8,13.9,17.2,20.8,24.5,28.5,32.7,37,41.5,46.2,51,56.1]

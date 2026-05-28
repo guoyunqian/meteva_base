@@ -1,6 +1,5 @@
 import os
 import numpy as np
-#import pkg_resources
 from importlib.resources import files, as_file
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -137,8 +136,7 @@ def set_customized_shpfile_list(shpfile_list = None):
         meteva_base.customized_basemap_list = []
         for shpfile_filename in shpfile_list:
             if shpfile_filename.find("/") <0 and shpfile_filename.find("\\") <0:
-                #shpfile = pkg_resources.resource_filename(
-                #    'meteva_base', "resources/maps/" + shpfile_filename)
+
                 shpfile = str(as_file(files('meteva_base') / "resources" / "maps" / shpfile_filename).__enter__())
 
                 meteva_base.customized_basemap_list.append(shpfile)
@@ -172,8 +170,7 @@ def add_china_map_2basemap(ax,name ="province", facecolor='none',
         names = {'world':"worldmap",'nation': "NationalBorder", 'province': "Province",
                  'county': "BOUL_X", 'river': "hyd1_4p",
                  'river_high': "hyd2_4p"}
-        #shpfile = pkg_resources.resource_filename(
-        #    'meteva_base', "resources/maps/" + names[name])
+
         shpfile = str(as_file(files('meteva_base') / "resources" / "maps" / names[name]).__enter__())
         #print(shpfile)
         shp1 = readshapefile(shpfile, default_encoding=encoding)
