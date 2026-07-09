@@ -42,7 +42,7 @@ def add_map(ax,add_county_line = False,add_worldmap = True,title = None,sup_font
 
 def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300,sup_title = None,sup_fontsize = 12,
               add_county_line = False,add_worldmap = True,add_minmap = None,title_list = None,add_index = None,wspace = None,grid = True,
-              xticks_inter = None,yticks_inter = None,linewidth = [0.3,0.3,0.2],color = ["k","k","k"], is_figure=False):
+              xticks_inter = None,yticks_inter = None,linewidth = [0.3,0.3,0.2],color = ["k","k","k"], is_figure=False, width_colorbar = 0.5):
     """
     return: fig, axes, [miniaxes]
     """
@@ -88,7 +88,7 @@ def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300
     else:
         width_wspace = wspace
 
-    width_colorbar = 0.5
+    # width_colorbar = 0.5
     width_left_yticks = sup_fontsize * 0.2
 
     if ncol is None:
