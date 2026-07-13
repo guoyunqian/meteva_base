@@ -917,7 +917,7 @@ def get_color_list(legend_num):
 
 def get_cmap_and_clevs_by_name(cmap_name,vmin,vmax):
     #path = pkg_resources.resource_filename('meteva_base', "resources/colormaps/color_"+cmap_name+".txt")
-    path = str(as_file(files('meteva_base') / "resources" / "colormaps" / "color_"+cmap_name+".txt").__enter__())
+    path = str(as_file(files('meteva_base') / "resources" / "colormaps" / ("color_"+cmap_name+".txt")).__enter__())
     if os.path.exists(path):
         cmap,clevs = get_cmap_and_clevs_from_file(path)
     elif cmap_name == "bias":

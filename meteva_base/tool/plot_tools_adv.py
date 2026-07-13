@@ -187,7 +187,7 @@ def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300
         else:
             inte = 10
     else:
-        inter = yticks_inter
+        inte = yticks_inter
 
     vmin = inte * (math.ceil(vmin / inte))
     vmax = inte * ((int)(vmax / inte)+0.5)
@@ -291,7 +291,8 @@ def creat_axs(nplot,map_extend,ncol = None,height  = None,width = None,dpi = 300
             return ax_list,min_ax_list
 
 
-def add_contourf(ax,grd,cmap ="rainbow",clevs= None,add_colorbar = True,cut_colorbar = True,title = None,title_fontsize = 8,clip = None):
+def add_contourf(ax,grd,cmap ="rainbow",clevs= None,add_colorbar = True,cut_colorbar = True,title = None,title_fontsize = 8,clip = None,
+                 colorbar_location = None):
     slon = ax.transLimits._boxin.x0
     elon = ax.transLimits._boxin.x1
     slat = ax.transLimits._boxin.y0
@@ -314,6 +315,8 @@ def add_contourf(ax,grd,cmap ="rainbow",clevs= None,add_colorbar = True,cut_colo
     width = fig.bbox.width/fig.dpi
     height = fig.bbox.height/fig.dpi
     location = [ax.bbox.x1/fig.dpi/width+0.005, ax.bbox.y0 / fig.dpi/height, 0.01, ax.bbox.height/fig.dpi/height]
+    if colorbar_location is not None:
+        location = colorbar_location
     ax.set_title(title,fontsize =title_fontsize)
     if add_colorbar:
         colorbar_position = fig.add_axes(location)  # 位置[左,下,宽,高]
