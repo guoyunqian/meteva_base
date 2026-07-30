@@ -69,7 +69,7 @@ def readshapefile(shapefile, default_encoding='utf-8'):
     coords = []; attributes = []
 
     shptype = shf.shapes()[0].shapeType
-    bbox = shf.bbox.tolist()
+    bbox = list(shf.bbox)
     info = (shf.numRecords,shptype,bbox[0:2]+[0.,0.],bbox[2:]+[0.,0.])
     npoly = 0
     for shprec in shf.shapeRecords():
