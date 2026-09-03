@@ -25,6 +25,10 @@ pip install meteva_base
 ## 用户手册
 [meteva_base 用户手册及接口API](https://www.showdoc.com.cn/metevabase)
 
+## NIMM 网格 NC v1.0
+
+本仓库已增加 NIMM 网格 NC v1.0 的六维内存模型、严格校验以及 float32、int32、int16 三种 NC 存储方式。接口定义、兼容策略和示例见 [docs/NIMM_GRID_NC_V1.md](docs/NIMM_GRID_NC_V1.md)。
+
 ## 设计和研发者
 刘凑华（01058995621,15811585045），郭云谦(01058995370)，宫宇，曹勇，唐健，曾晓青，代刊，韦青，朱文剑，
 

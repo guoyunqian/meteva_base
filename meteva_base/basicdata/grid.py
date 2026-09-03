@@ -15,11 +15,13 @@ class grid:
     '''
     def __init__(self,glon, glat, gtime=None, dtime_list=None, level_list=None, member_list = None,
                         units_attr      = '',#数据单位
-                        model_var_attr  = '',#补充模式/要素信息
+                        model_var_attr  = '',#兼容旧接口；新代码请使用short_name_attr
                         dtime_units_attr= 'hour',# hour/minite
-                        level_type_attr = 'isobaric',# isobaric/attitude
-                        time_type_attr  = 'UT',#UT/BT
-                        time_bounds_attr= [0,0],#数据起止时间
+                        level_type_attr = 'ground',# NIMM LEVEL_TYPE
+                        time_type_attr  = 'UTC',#UTC/BJT
+                        time_bounds_attr= None,#数据起止时间，默认[0,0]
+                        short_name_attr = None,#NIMM要素短名
+                        global_attrs    = None,#NetCDF全局属性映射
                         ):
         """
         ## 格点坐标设置
@@ -30,25 +32,26 @@ class grid:
                     若为列表且非上述要素，则是直接的datetime列表
         param dtime_list: 时效信息，list列表，其元素dtime为整数, 默认为[0]
         param level_list: 层次名称信息，list列表，默认为[0]
-        param member_list:成员名称信息，list列表，默认为['data0']
+        param member_list:成员名称信息，list列表，默认为['0']
         ## 格点属性设置
         param units_attr      : 数据单位, 默认为None,
-        param model_var_attr  : 补充模式/要素信息,默认为None
+        param model_var_attr  : 旧版模式/要素信息；兼容映射到SHORT_NAME
+        param short_name_attr : NIMM SHORT_NAME，默认data0
         param dtime_units_attr: 预报时效单位，hour/minite,默认为'hour' 
-        param level_type_attr : 层次单位，isobaric/attitude，默认为'isobaric'等压面
-        param time_type_attr  : 起报时间类型，UT（世界时间）/BT(北京时间)，默认'UT'
+        param level_type_attr : NIMM层次类型，默认ground
+        param time_type_attr  : 时间类型，UTC/BJT，默认UTC
         time_bounds_attr      : 数据起止时间，如24h降水为[-24,0], 默认[0,0]
         
         """
         #提取成员维度信息
         if(member_list is None):
-            self.members =['data0']
+            self.members =['0']
         else:
             self.members = member_list
         ############################################################################
         #提取层次维度信息
         if(level_list is None):
-            self.levels =[0]
+            self.levels =[0.0]
         else:
             self.levels = level_list
         ############################################################################
@@ -116,10 +119,18 @@ class grid:
         ## 格点数据属性设置(6属性)
         self.units       = units_attr
         self.model_var   = model_var_attr
+        self.short_name  = (
+            short_name_attr
+            if short_name_attr is not None
+            else model_var_attr
+            if model_var_attr not in (None, "")
+            else "data0"
+        )
         self.dtime_units = dtime_units_attr
         self.level_type  = level_type_attr
         self.time_type   = time_type_attr
-        self.time_bounds = time_bounds_attr
+        self.time_bounds = [0, 0] if time_bounds_attr is None else list(time_bounds_attr)
+        self.global_attrs = {} if global_attrs is None else dict(global_attrs)
         return
 
 
@@ -161,12 +172,12 @@ class grid:
         grid_str += "glon:" + str(self.glon) + "\n"
         grid_str += "glat:" + str(self.glat) + "\n"
         grid_str += "## grid_attributes ##" +  "\n"
-        grid_str += "units:" + str(self.units) + "\n"
-        grid_str += "model_var:" + str(self.model_var) + "\n"
-        grid_str += "dtime_units:" + str(self.dtime_units) + "\n"
-        grid_str += "level_type:" + str(self.level_type) + "\n"
-        grid_str += "time_type:" + str(self.time_type) + "\n"
-        grid_str += "time_bounds:" + str(self.time_bounds) + "\n"
+        grid_str += "SHORT_NAME:" + str(self.short_name) + "\n"
+        grid_str += "UNITS:" + str(self.units) + "\n"
+        grid_str += "DTIME_UNITS:" + str(self.dtime_units) + "\n"
+        grid_str += "LEVEL_TYPE:" + str(self.level_type) + "\n"
+        grid_str += "TIME_TYPE:" + str(self.time_type) + "\n"
+        grid_str += "TIME_BOUNDS:" + str(self.time_bounds) + "\n"
         return grid_str
 
 def get_true_value_bak(value):
@@ -216,10 +227,10 @@ def get_grid_of_data(grid_data0):
 
 
     lons = grid_data0['lon'].values
-    dlon = get_true_value(lons[1] - lons[0])
+    dlon = get_true_value(lons[1] - lons[0]) if len(lons) > 1 else 1.0
     glon = [get_true_value(lons[0]), get_true_value(lons[-1]), dlon]
     lats = grid_data0['lat'].values
-    dlat = get_true_value(lats[1] - lats[0])
+    dlat = get_true_value(lats[1] - lats[0]) if len(lats) > 1 else 1.0
     glat = [get_true_value(lats[0]), get_true_value(lats[-1]), dlat]
 
     # units_attr       = grid_data0.attrs['units']
@@ -229,6 +240,7 @@ def get_grid_of_data(grid_data0):
     # time_type_attr   = grid_data0.attrs['time_type']
     # time_bounds_attr = grid_data0.attrs['time_bounds']
     units,model,dtime_units,level_type,time_type,time_bounds = meteva_base.basicdata.get_griddata_attrs(grid_data0)
+    global_attrs = meteva_base.basicdata.get_griddata_global_attrs(grid_data0)
 
     grid01 = grid(glon, glat, gtime, gdt, level_list, member_list,
                         units_attr      = units,
@@ -236,7 +248,9 @@ def get_grid_of_data(grid_data0):
                         dtime_units_attr= dtime_units,
                         level_type_attr = level_type,
                         time_type_attr  = time_type,
-                        time_bounds_attr= time_bounds)
+                        time_bounds_attr= time_bounds,
+                        short_name_attr = model,
+                        global_attrs    = global_attrs)
     return grid01
 
 

@@ -165,7 +165,7 @@ def read_griddata_from_micaps4(filename,grid=None,
         return None
 
 #读取nc数据
-def read_griddata_from_nc(filename,grid = None,
+def _read_griddata_from_nc_legacy(filename,grid = None,
             value_name = None,member_dim = None,level_dim = None,time_dim = None,dtime_dim = None,lat_dim = None,lon_dim = None,
                          level=None, time=None, dtime=None, data_name="data0",dtime_units = "hour",outer_value = None,show = False):
 
@@ -499,6 +499,132 @@ def read_griddata_from_nc(filename,grid = None,
         exstr = traceback.format_exc()
         print(exstr)
         print(e)
+        return None
+
+
+def read_griddata_from_nc(
+        filename, grid=None,
+        value_name=None, member_dim=None, level_dim=None, time_dim=None,
+        dtime_dim=None, lat_dim=None, lon_dim=None,
+        level=None, time=None, dtime=None, data_name="data0",
+        dtime_units="hour", outer_value=None, show=False,
+        nimm_standard=True, nimm_strict=True, raise_on_error=False):
+    """Read one NetCDF variable as a six-dimensional grid DataArray.
+
+    By default the result is normalized and validated against NIMM v1.0:
+    CF time and packed values are decoded, missing values become NaN, the
+    variable is named ``data0``, dimensions and coordinates use the required
+    order/dtypes, and legacy lower-case data attributes are mapped to their
+    canonical NIMM names.  Set ``nimm_standard=False`` only for legacy generic
+    NetCDF behavior.
+
+    Dataset-level attributes are kept separately and can be obtained through
+    ``get_griddata_global_attrs``.  When ``raise_on_error`` is false, failures
+    retain the historical behavior of printing the exception and returning
+    ``None``.
+    """
+
+    if not os.path.exists(filename):
+        message = str(filename) + " not exists"
+        if raise_on_error:
+            raise FileNotFoundError(message)
+        print(message)
+        return None
+    try:
+        ds0 = xr.open_dataset(
+            filename, decode_cf=True, mask_and_scale=True, decode_times=True
+        )
+        source_global_attrs = dict(ds0.attrs)
+
+        if nimm_standard and nimm_strict:
+            required_candidates = {
+                "time": [time_dim] if time_dim is not None else ["time"],
+                "lat": [lat_dim] if lat_dim is not None else ["lat", "latitude"],
+                "lon": [lon_dim] if lon_dim is not None else ["lon", "longitude"],
+            }
+            available = set(ds0.coords) | set(ds0.dims)
+            missing = [
+                logical_name
+                for logical_name, candidates in required_candidates.items()
+                if not any(candidate in available for candidate in candidates)
+            ]
+            if missing:
+                ds0.close()
+                raise ValueError(
+                    "required NIMM coordinates are missing from the source: "
+                    + ", ".join(missing)
+                )
+
+            selected_name = value_name
+            if selected_name is None:
+                if "data0" in ds0.data_vars:
+                    selected_name = "data0"
+                elif len(ds0.data_vars) == 1:
+                    selected_name = next(iter(ds0.data_vars))
+                else:
+                    ds0.close()
+                    raise ValueError(
+                        "NIMM reading requires value_name when a file contains "
+                        "more than one data variable"
+                    )
+            if selected_name not in ds0.data_vars:
+                ds0.close()
+                raise ValueError(f"data variable {selected_name!r} was not found")
+            value_name = selected_name
+
+        da1 = meteva_base.xarray_to_griddata(
+            ds0,
+            value_name=value_name,
+            member_dim=member_dim,
+            level_dim=level_dim,
+            time_dim=time_dim,
+            dtime_dim=dtime_dim,
+            lat_dim=lat_dim,
+            lon_dim=lon_dim,
+        )
+        if da1 is None:
+            raise ValueError("no grid data variable could be read from the NetCDF file")
+
+        if time is not None and len(da1.coords["time"]) == 1:
+            meteva_base.set_griddata_coords(da1, gtime=[time])
+        if dtime is not None and len(da1.coords["dtime"]) == 1:
+            meteva_base.set_griddata_coords(da1, dtime_list=[dtime])
+        if level is not None and len(da1.coords["level"]) == 1:
+            meteva_base.set_griddata_coords(da1, level_list=[level])
+        if data_name not in (None, "data0") and len(da1.coords["member"]) == 1:
+            meteva_base.set_griddata_coords(da1, member_list=[data_name])
+
+        if nimm_standard:
+            if "DTIME_UNITS" not in da1.attrs and "dtime_units" not in da1.attrs:
+                da1.attrs["DTIME_UNITS"] = dtime_units
+            meteva_base.set_griddata_global_attrs(da1, source_global_attrs)
+            da1 = meteva_base.standardize_griddata_nimm(
+                da1, fill_defaults=True, strict=nimm_strict, copy=False
+            )
+        else:
+            meteva_base.set_griddata_coords_dtype(da1)
+
+        if grid is not None:
+            source_attrs = dict(da1.attrs)
+            source_global_attrs = meteva_base.get_griddata_global_attrs(da1)
+            da2 = meteva_base.interp_gg_linear(da1, grid, outer_value=outer_value)
+            da2.attrs.update(source_attrs)
+            meteva_base.set_griddata_global_attrs(da2, source_global_attrs)
+            if nimm_standard:
+                da2 = meteva_base.standardize_griddata_nimm(
+                    da2, fill_defaults=True, strict=nimm_strict, copy=False
+                )
+            else:
+                meteva_base.set_griddata_coords_dtype(da2)
+            da1 = da2
+
+        if show:
+            print("success read from " + str(filename))
+        return da1
+    except Exception:
+        if raise_on_error:
+            raise
+        print(traceback.format_exc())
         return None
 
 

@@ -1,14 +1,17 @@
 #!/usr/bin/python3.6
 # -*- coding:UTF-8 -*-
-import sys
-sys.path.append(r"D:\temp\202301_zhinengwangge\20230206_unitycode\git\meteva_base")
-
 import xarray as xr
 import numpy as np
 import pandas as pd
 import datetime
 import copy
 import meteva_base
+from .nimm_grid import (
+    NIMM_DATA_ATTR_DEFAULTS,
+    canonicalize_griddata_attrs,
+    get_griddata_global_attrs,
+    set_griddata_global_attrs,
+)
 
 #返回一个DataArray，其维度信息和grid描述一致，数组里面的值为0.
 def grid_data(grid,data=None):
@@ -43,8 +46,18 @@ def grid_data(grid,data=None):
                          dims=['member', 'level','time', 'dtime','lat', 'lon']))
     grd.name = "data0"
     ## 属性赋值
-    set_griddata_attrs(grd, units = grid.units, model_var = grid.model_var, dtime_units =grid.dtime_units,
-            level_type=grid.level_type , time_type=grid.time_type, time_bounds=grid.time_bounds)
+    set_griddata_attrs(
+        grd,
+        units=grid.units,
+        short_name=getattr(grid, "short_name", None),
+        model_var=getattr(grid, "model_var", None),
+        dtime_units=grid.dtime_units,
+        level_type=grid.level_type,
+        time_type=grid.time_type,
+        time_bounds=grid.time_bounds,
+        is_default=True,
+    )
+    set_griddata_global_attrs(grd, getattr(grid, "global_attrs", {}))
     ## 坐标数据类型统一
     set_griddata_coords_dtype(grd)
     return grd
@@ -126,142 +139,129 @@ def set_griddata_coords_dtype(da,member_type=str,
 
 def reset(grd):
     """
-    就地重置 grd：
+    重置 grd：
     1. lat/lon 若递减则翻转坐标并同步翻转数据
     2. 强制维度顺序 [member, level, time, dtime, lat, lon]
-    无返回值
+    返回重置后的 DataArray；维度转置时 xarray 会返回新对象。
     """
-    import numpy as np
+    # 1. lat/lon 翻转必须同步翻转 data0。单格点轴无需访问索引 1。
+    if "lat" in grd.coords and grd.sizes.get("lat", 0) > 1:
+        lats = np.asarray(grd["lat"].values)
+        if lats[0] > lats[1]:
+            lat_axis = grd.get_axis_num("lat")
+            grd.data = np.flip(np.asarray(grd.data), axis=lat_axis).copy()
+            grd.coords["lat"] = lats[::-1]
 
-    # 1. lat 翻转
-    lats = grd["lat"].values
-    if lats[0] > lats[1]:
-        lats = lats[::-1]
-        grd["lat"] = lats                    # 就地改坐标
-        grd.values[..., ::-1, :] = grd.values[..., ::-1, :]   # 就地翻数据
+    if "lon" in grd.coords and grd.sizes.get("lon", 0) > 1:
+        lons = np.asarray(grd["lon"].values)
+        if lons[0] > lons[1]:
+            lon_axis = grd.get_axis_num("lon")
+            grd.data = np.flip(np.asarray(grd.data), axis=lon_axis).copy()
+            grd.coords["lon"] = lons[::-1]
 
-    # 2. lon 翻转
-    lons = grd["lon"].values
-    if lons[0] > lons[1]:
-        lons = lons[::-1]
-        grd["lon"] = lons
-        grd.values[..., ::-1] = grd.values[..., ::-1]
-
-    # 3. 维度顺序标准化（就地转置）
+    # 2. xarray 不能可靠地就地改变维度定义；返回转置后的对象供新代码使用。
     target_order = ["member", "level", "time", "dtime", "lat", "lon"]
     current_dims = list(grd.dims)
     order = [d for d in target_order if d in current_dims]
     if len(order) < len(current_dims):
         order += [d for d in current_dims if d not in order]
-    grd[:] = grd.transpose(*order).values           # 就地赋值，触发转置
-    # 无返回
-    return None
+    if order != current_dims:
+        return grd.transpose(*order)
+    return grd
 
 
 def get_griddata_attrs(da,
               default_units='',
               default_model='',
               default_dtime_units='hour',
-              default_level_type='isobaric',
-              default_time_type='UT',
-              default_time_bounds=[0,0]):
-    try:
-        if 'units' in da.attrs:
-            units=str(da.attrs['units'])
-        else:
-            units=default_units
-            
-        if 'model' in da.attrs:
-            model=str(da.attrs['model'])
-        else:
-            model=default_model
-            
-        if 'dtime_units' in da.attrs:
-            dtime_units=str(da.attrs['dtime_units'])
-        else:
-            dtime_units=default_dtime_units
-            
-        if 'level_type' in da.attrs:
-            level_type=str(da.attrs['level_type'])
-        else:
-            level_type=default_level_type
-            
-        if 'time_type' in da.attrs:
-            time_type=str(da.attrs['time_type'])
-        else:
-            time_type=default_time_type
-            
-        if 'time_bounds' in da.attrs:
-            time_bounds=list(da.attrs['time_bounds'])
-        else:
-            time_bounds=default_time_bounds
-        
-        return units,model,dtime_units,level_type,time_type,time_bounds
-    
-    except Exception as ex:
-        raise ex
+              default_level_type='ground',
+              default_time_type='UTC',
+              default_time_bounds=None):
+    """Return the historical six-value tuple from canonical NIMM attributes.
+
+    ``model`` in the old tuple is mapped to ``SHORT_NAME``.  New code should
+    read ``da.attrs`` directly or use ``canonicalize_griddata_attrs``.
+    """
+
+    if default_time_bounds is None:
+        default_time_bounds = [0, 0]
+    attrs = da.attrs
+    units = str(attrs.get("UNITS", attrs.get("units", default_units)))
+    model = str(
+        attrs.get(
+            "SHORT_NAME",
+            attrs.get("short_name", attrs.get("model", attrs.get("model_var", default_model))),
+        )
+    )
+    dtime_units = str(
+        attrs.get("DTIME_UNITS", attrs.get("dtime_units", default_dtime_units))
+    )
+    level_type = str(
+        attrs.get("LEVEL_TYPE", attrs.get("level_type", default_level_type))
+    )
+    time_type = str(attrs.get("TIME_TYPE", attrs.get("time_type", default_time_type)))
+    time_bounds = list(
+        np.asarray(
+            attrs.get("TIME_BOUNDS", attrs.get("time_bounds", default_time_bounds))
+        ).reshape(-1)
+    )
+    return units, model, dtime_units, level_type, time_type, time_bounds
 
 def set_griddata_attrs(grd, units = None, model_var = None, dtime_units =None,
             level_type=None ,time_type=None , time_bounds=None,
             is_default=False,
-            default_attr={'units':'', 'model_var':'', 'dtime_units':'hour', 'level_type':'isobaric', 'time_type':'UT', 'time_bounds':[0,0],}
+            default_attr=None,
+            short_name=None,
+            global_attrs=None,
             ):
+    """Set the six canonical NIMM data attributes.
+
+    ``model_var`` is retained as a deprecated input alias for ``short_name``.
+    Global NetCDF attributes are stored separately via
+    ``set_griddata_global_attrs``.
     """
-    :param units_attr:       属性，数据单位，string类型，默认为None
-    :param model_var:        属性，数据来源(模式及要素)，string类型，默认为None
-    :param dtime_units_attr: 属性，预报时效，hour/minute
-    :param level_type_attr:  属性，高度单位类型，isobaric/attitude
-    :param time_type_attr:   属性，预报时效，UT/BT
-    :param time_bounds_attr: 属性，要素起止时间，list类型，默认为[0,0]。如1小时降水为[-1,0]
-    :is_default:             属性赋值方式，True: 属性为None则赋值属性为默认值； False:属性为None则不赋值该属性
-    :default_attr:           默认属性值, is_default为True时生效
-    """
-    if grd.attrs is None: grd.attrs = {}
 
-    if units is not None       : 
-        grd.attrs['units'] = units
-    else:
-        if is_default:
-            grd.attrs['units'] = default_attr['units']
-
-    if model_var is not None   : 
-        grd.attrs['model_var'] = model_var
-    else:
-        if is_default:
-            grd.attrs['model_var'] = default_attr['model_var']
-
-    if dtime_units is not None : 
-        grd.attrs['dtime_units'] = dtime_units
-    else:
-        if is_default:
-            grd.attrs['dtime_units'] = default_attr['dtime_units']
-
-    if level_type is not None  : 
-        grd.attrs['level_type'] = level_type
-    else:
-        if is_default:
-            grd.attrs['level_type'] = default_attr['level_type']
-
-    if time_type is not None   : 
-        grd.attrs['time_type'] = time_type
-    else:
-        if is_default:
-            grd.attrs['time_type'] = default_attr['time_type']
-
-    if time_bounds is not None : 
-        grd.attrs['time_bounds'] = time_bounds
-    else:
-        if is_default:
-            grd.attrs['time_bounds'] = default_attr['time_bounds']
+    if default_attr is None:
+        default_attr = NIMM_DATA_ATTR_DEFAULTS
+    if short_name is None and model_var not in (None, ""):
+        short_name = model_var
+    supplied = {
+        "SHORT_NAME": short_name,
+        "UNITS": units,
+        "DTIME_UNITS": dtime_units,
+        "LEVEL_TYPE": level_type,
+        "TIME_TYPE": time_type,
+        "TIME_BOUNDS": time_bounds,
+    }
+    for name, value in supplied.items():
+        if value is not None:
+            grd.attrs[name] = value
+        elif is_default and name not in grd.attrs:
+            if name in default_attr:
+                grd.attrs[name] = copy.deepcopy(default_attr[name])
+            else:
+                legacy_name = {
+                    "SHORT_NAME": "model_var",
+                    "UNITS": "units",
+                    "DTIME_UNITS": "dtime_units",
+                    "LEVEL_TYPE": "level_type",
+                    "TIME_TYPE": "time_type",
+                    "TIME_BOUNDS": "time_bounds",
+                }[name]
+                if legacy_name in default_attr:
+                    grd.attrs[name] = copy.deepcopy(default_attr[legacy_name])
+    canonicalize_griddata_attrs(grd, fill_defaults=is_default, drop_legacy=True)
+    if global_attrs:
+        set_griddata_global_attrs(grd, global_attrs)
     return None
 
 
 
 def set_griddata_attrs_same(grd, grd0):
-    units,model,dtime_units,level_type,time_type,time_bounds = get_griddata_attrs(grd0)
-    set_griddata_attrs(grd, units = units, model_var = model, dtime_units =dtime_units,
-            level_type=level_type ,time_type=time_type , time_bounds=time_bounds,
-            is_default=True)
+    source = grd0.copy(deep=False)
+    canonicalize_griddata_attrs(source, fill_defaults=True, drop_legacy=True)
+    grd.attrs.update(copy.deepcopy(source.attrs))
+    set_griddata_global_attrs(grd, get_griddata_global_attrs(grd0))
     return None
     
 
@@ -563,17 +563,17 @@ def xarray_to_griddata(xr0,
     if "dtime_type" in attrs_name:
         da1.attrs["dtime_type"] = "hour"
 
-    reset(da1)
+    da1 = reset(da1)
     lats = da1.lat.values
     dlats = lats[1:] - lats[:-1]
-    maxdlats = np.max(dlats)
-    mindlats = np.min(dlats)
-    if (maxdlats - mindlats)/maxdlats > 0.001:
+    if len(dlats) > 1 and np.max(np.abs(dlats)) > 0 and (
+            np.max(dlats) - np.min(dlats)) / np.max(np.abs(dlats)) > 0.001:
         print("***")
+        mindlats = np.min(dlats)
         nlat = int((lats[-1] - lats[0])/mindlats) + 2
         dlat = (lats[-1] - lats[0])/(nlat-1)
         lons = da1.lon.values
-        dlon = (lons[-1] - lons[0])/(len(lons) - 1)
+        dlon = (lons[-1] - lons[0])/(len(lons) - 1) if len(lons) > 1 else 1.0
         grid = meteva_base.grid([lons[0],lons[-1],dlon],[lats[0],lats[-1],dlat])
         da1 = meteva_base.interp_xg_linear(da1,grid)
     return da1

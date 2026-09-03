@@ -109,7 +109,7 @@ def write_griddata_to_micaps4(da, save_path="a.txt", creat_dir=False, effectiveN
         print(exstr)
         return False
 
-def write_griddata_to_nc(da, save_path="a.txt", creat_dir=False, effectiveNum=3, show=False):
+def _write_griddata_to_nc_legacy(da, save_path="a.txt", creat_dir=False, effectiveNum=3, show=False):
     try:
         dir = os.path.split(os.path.abspath(save_path))[0]
         if not os.path.isdir(dir):
@@ -135,6 +135,234 @@ def write_griddata_to_nc(da, save_path="a.txt", creat_dir=False, effectiveNum=3,
     except:
         exstr = traceback.format_exc()
         print(exstr)
+        return False
+
+
+def _check_integer_packing_range(da, dtype, scale_factor, add_offset, fill_value):
+    """Fail before xarray casts values that cannot be represented safely."""
+
+    limits = np.iinfo(np.dtype(dtype))
+    valid_min = limits.min + 1 if fill_value == limits.min else limits.min
+    valid_max = limits.max
+    values = np.asarray(da.values, dtype=np.float32).reshape(-1)
+    block_size = 1_000_000
+    packed_min = None
+    packed_max = None
+    for start in range(0, values.size, block_size):
+        block = values[start:start + block_size]
+        finite = block[np.isfinite(block)].astype(np.float64)
+        if finite.size == 0:
+            continue
+        packed = np.rint((finite - add_offset) / scale_factor)
+        block_min = float(np.min(packed))
+        block_max = float(np.max(packed))
+        packed_min = block_min if packed_min is None else min(packed_min, block_min)
+        packed_max = block_max if packed_max is None else max(packed_max, block_max)
+        if block_min < valid_min or block_max > valid_max:
+            raise OverflowError(
+                f"packed values [{block_min}, {block_max}] exceed the safe "
+                f"{np.dtype(dtype).name} range [{valid_min}, {valid_max}]"
+            )
+    return {"packed_min": packed_min, "packed_max": packed_max}
+
+
+def _default_nimm_chunksizes(da):
+    if any(da.sizes[name] < 1 for name in da.dims):
+        raise ValueError("NIMM output cannot contain an empty dimension")
+    return (
+        1,
+        1,
+        1,
+        1,
+        min(512, da.sizes["lat"]),
+        min(512, da.sizes["lon"]),
+    )
+
+
+def _verify_nimm_roundtrip(source, save_path, storage_type, scale_factor):
+    restored = meteva_base.read_griddata_from_nc(
+        save_path,
+        nimm_standard=True,
+        nimm_strict=True,
+        raise_on_error=True,
+    )
+    if tuple(restored.dims) != tuple(source.dims) or restored.shape != source.shape:
+        raise AssertionError("round-trip dimensions or shape changed")
+    for name in ("member", "level", "time", "dtime", "lat", "lon"):
+        left = np.asarray(source.coords[name].values)
+        right = np.asarray(restored.coords[name].values)
+        if name in ("member", "time"):
+            equal = np.array_equal(left, right)
+        else:
+            equal = np.allclose(left, right, rtol=0, atol=1e-10)
+        if not equal:
+            raise AssertionError(f"round-trip coordinate {name} changed")
+
+    source_values = np.asarray(source.values, dtype=np.float32)
+    restored_values = np.asarray(restored.values, dtype=np.float32)
+    source_missing = ~np.isfinite(source_values)
+    restored_missing = ~np.isfinite(restored_values)
+    if not np.array_equal(source_missing, restored_missing):
+        raise AssertionError("round-trip missing-value positions changed")
+    valid = ~(source_missing | restored_missing)
+    maximum_error = 0.0
+    if np.any(valid):
+        maximum_error = float(
+            np.max(
+                np.abs(
+                    source_values[valid].astype(np.float64)
+                    - restored_values[valid].astype(np.float64)
+                )
+            )
+        )
+    if storage_type == "float32":
+        max_value = float(np.max(np.abs(source_values[valid]))) if np.any(valid) else 1.0
+        tolerance = float(np.finfo(np.float32).eps * max(1.0, max_value))
+    else:
+        tolerance = 0.5 * scale_factor + 1e-12
+    if maximum_error > tolerance:
+        raise AssertionError(
+            f"round-trip maximum absolute error {maximum_error} exceeds {tolerance}"
+        )
+    for name in meteva_base.NIMM_DATA_ATTR_DEFAULTS:
+        if name not in restored.attrs:
+            raise AssertionError(f"round-trip lost required attribute {name}")
+        left = np.asarray(source.attrs[name]).reshape(-1)
+        right = np.asarray(restored.attrs[name]).reshape(-1)
+        if left.dtype.kind in "iuf" and right.dtype.kind in "iuf":
+            equal = np.allclose(left.astype(float), right.astype(float), rtol=0, atol=0)
+        else:
+            equal = np.array_equal(left.astype(str), right.astype(str))
+        if not equal:
+            raise AssertionError(f"round-trip attribute {name} changed")
+    return {"maximum_absolute_error": maximum_error, "tolerance": tolerance}
+
+
+def write_griddata_to_nc(
+        da, save_path="a.nc", creat_dir=False, effectiveNum=3, show=False,
+        storage_type=None, add_offset=0.0, global_attrs=None,
+        zlib=True, complevel=4, shuffle=True, chunksizes=None,
+        nimm_standard=True, nimm_strict=True, roundtrip=True,
+        raise_on_error=False):
+    """Write grid data using one of the NIMM v1.0 NetCDF storage modes.
+
+    Parameters
+    ----------
+    storage_type : {"float32", "int32", "int16"}, optional
+        ``None`` maps to ``int32`` for compatibility with the historical
+        ``effectiveNum`` API.  New code should always select a mode explicitly.
+    effectiveNum : int
+        Decimal digits used only by integer packing.  Ignored for float32.
+    roundtrip : bool
+        Reopen and compare structure, coordinates, attributes, missing values
+        and numeric error after writing.  Enabled by default for NIMM output.
+    raise_on_error : bool
+        Raise the original exception instead of returning ``False``.
+    """
+
+    if not nimm_standard:
+        return _write_griddata_to_nc_legacy(
+            da, save_path=save_path, creat_dir=creat_dir,
+            effectiveNum=effectiveNum, show=show
+        )
+    try:
+        directory = os.path.split(os.path.abspath(save_path))[0]
+        if not os.path.isdir(directory):
+            if not creat_dir:
+                raise FileNotFoundError("文件夹：" + directory + "不存在")
+            meteva_base.tool.path_tools.creat_path(save_path)
+
+        mode = "int32" if storage_type is None else str(storage_type).lower()
+        mode = {"f4": "float32", "i4": "int32", "i2": "int16"}.get(mode, mode)
+        if mode not in {"float32", "int32", "int16"}:
+            raise ValueError("storage_type must be float32, int32 or int16")
+
+        normalized = meteva_base.standardize_griddata_nimm(
+            da, fill_defaults=True, strict=nimm_strict, copy=True
+        )
+        logical_global_attrs = meteva_base.get_griddata_global_attrs(normalized)
+        if global_attrs:
+            logical_global_attrs.update(dict(global_attrs))
+        logical_global_attrs.setdefault("CONVENTIONS", "CF-1.11, NIMM-v1.0")
+        logical_global_attrs.setdefault("CRS", "WGS84")
+        meteva_base.set_griddata_global_attrs(normalized, logical_global_attrs)
+
+        if chunksizes is None:
+            chunksizes = _default_nimm_chunksizes(normalized)
+        else:
+            chunksizes = tuple(int(value) for value in chunksizes)
+            if len(chunksizes) != 6:
+                raise ValueError("chunksizes must contain six integers")
+            for size, dim in zip(chunksizes, normalized.dims):
+                if size < 1 or size > normalized.sizes[dim]:
+                    raise ValueError(f"invalid chunk size {size} for dimension {dim}")
+
+        encoding = {
+            "level": {"dtype": "float32", "_FillValue": None},
+            "time": {
+                "dtype": "float64",
+                "units": "hours since 1970-01-01 00:00:00",
+                "calendar": "standard",
+                "_FillValue": None,
+            },
+            "dtime": {"dtype": "int32", "_FillValue": None},
+            "lat": {"dtype": "float64", "_FillValue": None},
+            "lon": {"dtype": "float64", "_FillValue": None},
+        }
+        common_encoding = {
+            "zlib": bool(zlib),
+            "complevel": int(complevel),
+            "shuffle": bool(shuffle),
+            "chunksizes": chunksizes,
+        }
+        scale_factor = None
+        if mode == "float32":
+            data_encoding = {
+                "dtype": "float32",
+                "_FillValue": np.float32(999999.0),
+                **common_encoding,
+            }
+        else:
+            if isinstance(effectiveNum, bool) or int(effectiveNum) != effectiveNum:
+                raise ValueError("effectiveNum must be an integer")
+            effectiveNum = int(effectiveNum)
+            if effectiveNum < 0:
+                raise ValueError("effectiveNum must be >= 0")
+            scale_factor = float(math.pow(10, -effectiveNum))
+            dtype = np.dtype(mode)
+            fill_value = np.iinfo(dtype).min
+            _check_integer_packing_range(
+                normalized, dtype, scale_factor, float(add_offset), fill_value
+            )
+            packing_float = np.float64 if mode == "int32" else np.float32
+            data_encoding = {
+                "dtype": mode,
+                "_FillValue": dtype.type(fill_value),
+                "scale_factor": packing_float(scale_factor),
+                "add_offset": packing_float(add_offset),
+                **common_encoding,
+            }
+        encoding["data0"] = data_encoding
+
+        dataset = normalized.to_dataset(name="data0")
+        dataset.attrs = logical_global_attrs
+        for variable in dataset.variables.values():
+            variable.encoding = {}
+        dataset.to_netcdf(
+            save_path, mode="w", format="NETCDF4", engine="netcdf4",
+            encoding=encoding
+        )
+        dataset.close()
+
+        if roundtrip:
+            _verify_nimm_roundtrip(normalized, save_path, mode, scale_factor)
+        if show:
+            print("成功输出至" + str(save_path))
+        return True
+    except Exception:
+        if raise_on_error:
+            raise
+        print(traceback.format_exc())
         return False
 def write_griddata_to_micaps11(wind, save_path="a.txt", creat_dir=False, effectiveNum=3, show=False, title=None):
     try:
